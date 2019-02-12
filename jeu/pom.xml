@@ -21,7 +21,17 @@
 
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>
-        <plugins/>
+        <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.0</version>
+            <configuration>
+                <source>1.8</source> <!-- éventuellement à changer : version de java -->
+                <target>1.8</target> <!-- éventuellement à changer : version de java -->
+            </configuration>
+        </plugin>
+        </plugins>
     </build>
 
     <dependencies>

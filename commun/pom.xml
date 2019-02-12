@@ -13,11 +13,7 @@
     <artifactId>commun</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <compiler.source>1.8</compiler.source>
-        <compiler.target>1.8</compiler.target>
-    </properties>
+
 
     <build>
         <sourceDirectory>src/main/java</sourceDirectory>

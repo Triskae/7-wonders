@@ -1,13 +1,14 @@
 package commun.cartes;
 
-import java.util.ArrayList;
-
 public abstract class Carte {
 
-	private String nom;
+    private String nom;
 
-    public Carte(String nom,int id){
+    public Carte(String nom, int id) {
         this.nom = nom;
     }
 
+    public String getNom() {
+        return nom;
+    }
 }

@@ -3,6 +3,7 @@ package commun;
 import commun.cartes.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Random;
 
 public class Deck {
@@ -47,8 +48,21 @@ public class Deck {
 				throw new Exception("Pas encore crée");
 			}
 		}
-
 	}
 
-
+    public ArrayList<Carte> genererMain() {
+        int nbCartes = 7;
+        ArrayList<Carte> mainJoueur = new ArrayList<>();
+        Collections.shuffle(deck);
+        for (int i = 0; i < nbCartes; i++) {
+            if (deck.size() < 7) {
+                i = 0;
+                nbCartes = deck.size();
+            }
+            Carte carte = deck.get(i);
+            mainJoueur.add(carte);
+            deck.remove(carte);
+        }
+        return mainJoueur;
+    }
 }

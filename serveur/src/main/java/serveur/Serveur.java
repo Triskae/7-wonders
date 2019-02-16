@@ -7,32 +7,27 @@ import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
-import commun.Coup;
 
-
+import java.io.IOException;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.Scanner;
 
 public class Serveur {
 
     private SocketIOServer server;
     private ArrayList<SocketIOClient> clients;
 
-//    final Object attenteConnexion = new Object();
-//    private int àTrouvé = 42;
-//    Identification leClient ;
-//    ArrayList<Coup> coups = new ArrayList<>();
-
-
-    public static void main(String[] args) throws UnknownHostException {
+    public static void main(String[] args) throws IOException {
         new Serveur();
     }
 
-
-    public Serveur() throws UnknownHostException {
+    private Serveur() throws IOException {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Entrer un port à utiliser pour le serveur (60001 recommandé) : ");
+        int port = scanner.nextInt();
+        scanner.close();
         InetAddress inetAddress = InetAddress.getLocalHost();
-        int port = 60001;
         String ipAdress = inetAddress.getHostAddress();
         Configuration config = new Configuration();
         config.setHostname(ipAdress);
@@ -41,35 +36,43 @@ public class Serveur {
 
         // creation du serveur
         server = new SocketIOServer(config);
-        server.start();
+
         server.addConnectListener(new ConnectListener() {
             public void onConnect(SocketIOClient socketIOClient) {
-                System.out.println("connexion de " + socketIOClient.getRemoteAddress());
+                System.out.println("[SERVEUR] - Connexion de " + socketIOClient.getRemoteAddress());
                 clients.add(socketIOClient);
-                System.out.println(clients);
+                System.out.println("[SERVEUR] - Nombre de clients : " + clients.size());
+                socketIOClient.sendEvent("confirmationConnexion");
             }
         });
 
         server.addDisconnectListener(new DisconnectListener() {
-            @Override
-            public void onDisconnect(SocketIOClient socketIOClient) {
-                System.out.println("déconnexion de " + socketIOClient.getRemoteAddress());
+            @Override public void onDisconnect(SocketIOClient socketIOClient) {
+                System.out.println("[SERVEUR] - Déconnexion de " + socketIOClient.getRemoteAddress());
                 clients.remove(socketIOClient);
             }
         });
 
+        server.start();
+
         server.addEventListener("envoieObjet", Object.class, new DataListener<Object>() {
             @Override
             public void onData(SocketIOClient socketIOClient, Object o, AckRequest ackRequest) throws Exception {
-                System.out.println("Recu depuis le client");
-                System.out.println((String) o);
-                for (SocketIOClient s : clients) {
-                    s.sendEvent("coucou", new Coup());
-                }
+                System.out.println("[SERVEUR] - " + o + " reçu");
+//                for (SocketIOClient s : clients) {
+//                    s.sendEvent("coucou", new Coup());
+//                }
             }
         });
-    }
 
+        server.addEventListener("testObject", Object.class, new DataListener<Object>() {
+            @Override
+            public void onData(SocketIOClient socketIOClient, Object o, AckRequest ackRequest) throws Exception {
+                System.out.println(o);
+            }
+        });
+
+    }
 
     public void stop() {
         server.stop();

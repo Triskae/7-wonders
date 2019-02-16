@@ -6,12 +6,9 @@ import commun.Identification;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 
 public class Connexion {
 
@@ -52,40 +49,6 @@ public class Connexion {
 
                 }
             });
-
-
-            // on recoit une question
-            connexion.on("question", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    // message sans intérêt pour le client... // System.out.println("on a reçu une question avec "+objects.length+" paramètre(s) ");
-                    if (objects.length > 0 ) {
-                        // déplacement du message dans Client/Controleur
-
-                        boolean plusGrand = (Boolean)objects[0];
-                        // false, c'est plus petit... !! erreur... dans les commit d'avant
-
-                        // conversion local en ArrayList, juste pour montrer
-                        JSONArray tab = (JSONArray) objects[1];
-                        ArrayList<Coup> coups = new ArrayList<Coup>();
-                        for(int i = 0; i < tab.length(); i++) {
-
-                            try {
-                                coups.add(new Coup(tab.getJSONObject(i).getInt("coup"), tab.getJSONObject(i).getBoolean("plusGrand")));
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-
-//                        controleur.rejouer(plusGrand, coups);
-
-
-                    } else controleur.premierCoup();
-                }
-            });
-
-
-
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -104,7 +67,7 @@ public class Connexion {
         connexion.emit("identification", pieceJointe);
     }
 
-    public void emit(String str) {
-        connexion.emit("envoieObjet", str);
+    public void emit(String str, Object... payload) {
+        connexion.emit(str, payload);
     }
 }

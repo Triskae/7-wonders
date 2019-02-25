@@ -6,8 +6,8 @@ public abstract class CarteBatiment extends Carte {
 
     private int nbPoint;
 
-    public CarteBatiment(String nom, int nbPoint, int id) {
-        super(nom, id);
+    public CarteBatiment(String nom, int nbPoint) {
+        super(nom);
         this.nbPoint = nbPoint;
         AjouterPointVictoire ap = new AjouterPointVictoire("AjouterPointVictoire", nbPoint);
     }

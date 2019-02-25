@@ -4,7 +4,7 @@ public abstract class Carte {
 
     private String nom;
 
-    public Carte(String nom, int id) {
+    public Carte(String nom) {
         this.nom = nom;
     }
 

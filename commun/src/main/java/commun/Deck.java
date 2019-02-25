@@ -38,10 +38,15 @@ public class Deck {
 
 		switch (nbJoueur) {
 			case 3: {
+			    // Bleu
 				carteEnJeu.add(new Bains());
 				carteEnJeu.add(new Autel());
 				carteEnJeu.add(new Theatre());
 				carteEnJeu.add(new PreteurSurGages());
+                // Rouge
+                carteEnJeu.add(new Caserne());
+                carteEnJeu.add(new TourDeGarde());
+                carteEnJeu.add(new Palissade());
 				break;
 			}
 			default: {

@@ -22,11 +22,6 @@ public class Deck {
             int r = new Random().nextInt(carteEnJeu.size());
             //Plus tard il faudra également faire un remove de la carte pour ne pas la piocher 2x
             deck.add(carteEnJeu.get(r));
-
-        }
-
-        for (int i = 0; i < deck.size(); i++) {
-            System.out.println(i + " " + deck.get(i));
         }
     }
 

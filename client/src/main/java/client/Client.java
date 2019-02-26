@@ -19,7 +19,6 @@ public class Client extends Thread {
     private Plateau plateaux;
     private String nom;
     private Main main;
-    private boolean connexionReussie;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
@@ -133,14 +132,12 @@ public class Client extends Thread {
 
     public void onConnexion() {
         System.out.println("[CLIENT " + getNom() + "] - Connexion réussie");
-        this.connexionReussie = true;
     }
 
     public void finPartie() {
         synchronized (attenteDeconnexion) {
             attenteDeconnexion.notify();
         }
-        this.connexionReussie = false;
     }
 
     @Override

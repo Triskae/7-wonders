@@ -1,19 +1,21 @@
 package client.reseau;
 
 import client.Client;
-import commun.Coup;
-import commun.Identification;
+import commun.Main;
+import commun.cartes.Carte;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
-import org.json.JSONObject;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 
 public class Connexion {
 
     private final Client controleur;
-    Socket connexion;
+    private Socket connexion;
 
     public Connexion(String urlServeur, Client ctrl) {
         this.controleur = ctrl;
@@ -41,30 +43,32 @@ public class Connexion {
                 }
             });
 
-            connexion.on("coucou", new Emitter.Listener() {
+            connexion.on("envoiMain", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    System.out.println("depuis le serveur");
-                    System.out.println((Coup) objects[0]);
-
+                    ArrayList<Carte> mainRecue = new ArrayList<>();
+                    Object carteTemp;
+                    JSONArray typesCartes = (JSONArray) objects[0];
+                    for (int i = 0; i < typesCartes.length(); i++) {
+                        try {
+                            carteTemp = Class.forName(typesCartes.getString(i)).newInstance();
+                            mainRecue.add((Carte) carteTemp);
+                        } catch (InstantiationException | IllegalAccessException | JSONException | ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    controleur.setMain(new Main(mainRecue));
+                    System.out.println("[CLIENT " + controleur.getNom() + "] - Main reçue");
                 }
             });
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
-
     }
 
     public void seConnecter() {
         // on se connecte
         connexion.connect();
-
-    }
-
-    public void envoyerId(Identification moi) {
-        // conversion automatique obj <-> json
-        JSONObject pieceJointe = new JSONObject(moi);
-        connexion.emit("identification", pieceJointe);
     }
 
     public void emit(String str, Object... payload) {

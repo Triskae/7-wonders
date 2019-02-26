@@ -2,7 +2,7 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-abstract class Plateau {
+public abstract class Plateau {
 
   private String nom;
   private RessourceDepart ressourceDepart;

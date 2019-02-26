@@ -2,9 +2,9 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-class LaGrandePyramideDeGizeh extends Plateau {
+public class LaGrandePyramideDeGizeh extends Plateau {
 
-  LaGrandePyramideDeGizeh() {
+  public LaGrandePyramideDeGizeh() {
     ArrayList<String> etapes = new ArrayList<String>();
     etapes.add("3 points");
     etapes.add("5 points");

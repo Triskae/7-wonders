@@ -10,11 +10,12 @@ class LeTempleDArthemisAEphese extends Plateau {
     etapes.add("9 ors");
     etapes.add("7 points");
 
+    super.setNom("Le Temple d'Arthemis à Ephese");
     super.setRessource(RessourceDepart.PAPYRUS);
     super.setEtapes(etapes);
   }
 
   public String toString() {
-   return "LeTempleDArthemisAEphese : < " + super.toString() + " >";
+    return super.toString();
   }
 }

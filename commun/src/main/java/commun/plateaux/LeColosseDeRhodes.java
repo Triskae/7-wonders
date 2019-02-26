@@ -10,11 +10,12 @@ class LeColosseDeRhodes extends Plateau {
     etapes.add("2 guerres");
     etapes.add("7 points");
 
+    super.setNom("Le Colosse de Rhodes");
     super.setRessource(RessourceDepart.MINERAI);
     super.setEtapes(etapes);
   }
 
   public String toString() {
-   return "LeColosseDeRhodes : < " + super.toString() + " >";
+    return super.toString();
   }
 }

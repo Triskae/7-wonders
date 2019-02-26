@@ -10,11 +10,12 @@ class LaStatueDeZeusAOlympie extends Plateau {
     etapes.add("Batiment gratuit");
     etapes.add("7 points");
 
+    super.setNom("La Statue de Zeus à Olympie");
     super.setRessource(RessourceDepart.BOIS);
     super.setEtapes(etapes);
   }
 
   public String toString() {
-   return "LaStatueDeZeusAOlympie : < " + super.toString() + " >";
+    return super.toString();
   }
 }

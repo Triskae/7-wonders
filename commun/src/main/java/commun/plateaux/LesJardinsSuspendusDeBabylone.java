@@ -10,11 +10,12 @@ class LesJardinsSuspendusDeBabylone extends Plateau {
     etapes.add("Symbole scinetifique au choix");
     etapes.add("7 points");
 
+    super.setNom("Les Jardins Suspendus de Babylone");
     super.setRessource(RessourceDepart.PIERRE);
     super.setEtapes(etapes);
   }
 
   public String toString() {
-   return "LesJardinsSuspendusDeBabylone : < " + super.toString() + " >";
+    return super.toString();
   }
 }

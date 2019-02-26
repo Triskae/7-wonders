@@ -10,11 +10,12 @@ class LaGrandePyramideDeGizeh extends Plateau {
     etapes.add("5 points");
     etapes.add("7 points");
 
+    super.setNom("La Grande Pyramide de Gizeh");
     super.setRessource(RessourceDepart.PIERRE);
     super.setEtapes(etapes);
   }
 
   public String toString() {
-   return "LaGrandePyramideDeGizeh : < " + super.toString() + " >";
+   return super.toString();
   }
 }

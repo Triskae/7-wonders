@@ -10,11 +10,12 @@ class LePhareDAlexandrie extends Plateau {
     etapes.add("Ressource (matières premières) au choix");
     etapes.add("7 points");
 
+    super.setNom("Le Phare d'Alexandrie");
     super.setRessource(RessourceDepart.VERRE);
     super.setEtapes(etapes);
   }
 
   public String toString() {
-   return "LePhareDAlexandrie : < " + super.toString() + " >";
+    return super.toString();
   }
 }

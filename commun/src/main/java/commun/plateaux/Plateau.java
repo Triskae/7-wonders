@@ -4,8 +4,11 @@ import java.util.ArrayList;
 
 abstract class Plateau {
 
+  private String nom;
   private RessourceDepart ressourceDepart;
   private ArrayList<String> etapes;
+
+  public String getNom() { return this.nom; }
 
   public RessourceDepart getRessource() {
     return this.ressourceDepart;
@@ -13,6 +16,10 @@ abstract class Plateau {
 
   public ArrayList<String> getEtapes() {
     return this.etapes;
+  }
+
+  public void setNom(String nom) {
+    this.nom = nom;
   }
 
   public void setRessource(RessourceDepart ressourceDepart) {
@@ -24,7 +31,7 @@ abstract class Plateau {
   }
 
   public String toString() {
-   return this.ressourceDepart + ", " + this.etapes;
+   return this.nom + " : < " + this.ressourceDepart + ", " + this.etapes + " > ";
   }
 
 }

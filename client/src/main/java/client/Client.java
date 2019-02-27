@@ -19,6 +19,7 @@ public class Client extends Thread {
     private Plateau plateaux;
     private String nom;
     private Main main;
+    private int pointMilitaire;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
@@ -36,9 +37,20 @@ public class Client extends Thread {
         this.main = new Main(new ArrayList<>());
     }
 
+
+
     /**
      * un ensemble de getter et setter
      **/
+
+    public int getPointMilitaire() {
+        return pointMilitaire;
+    }
+
+    public void setPointMilitaire(int pointMilitaire) {
+        this.pointMilitaire = pointMilitaire;
+    }
+
     public String getNom() {
         return nom;
     }
@@ -104,6 +116,10 @@ public class Client extends Thread {
             }
             i++;
         }
+    }
+
+    public void addPointMilitaire(int point){
+        this.pointMilitaire+= point;
     }
 
     // Joue une carte au Hasard

@@ -2,15 +2,17 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class GestionnairePlateauTest {
+
+    private GestionnairePlateau g = new GestionnairePlateau();
 
     // Test gestionnaire
     @org.junit.Test
     public void testRemplirGestionnaire(){
-        GestionnairePlateau.RemplirPlateau();
+        g.RemplirPlateau();
         assertNotEquals(null, GestionnairePlateau.listePlateauDisponible);
     }
 
@@ -25,8 +27,8 @@ public class GestionnairePlateauTest {
         liste.add("LeMausoléeDHalicarnasse");
         liste.add("LaGrandePyramideDeGizeh");
 
-        GestionnairePlateau.RemplirPlateau();
-        Plateau p = GestionnairePlateau.RandomPlateau();
+        g.RemplirPlateau();
+        Plateau p = g.RandomPlateau();
 
         assertTrue(liste.stream().anyMatch(item -> p.getClass().getSimpleName().equals(item)));
     }

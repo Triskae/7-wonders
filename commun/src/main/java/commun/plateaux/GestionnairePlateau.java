@@ -6,7 +6,11 @@ public class GestionnairePlateau {
 
     static ArrayList<Plateau> listePlateauDisponible = new ArrayList<Plateau>();
 
-    public static void RemplirPlateau() {
+    public GestionnairePlateau() {
+        RemplirPlateau();
+    }
+
+    public void RemplirPlateau() {
         listePlateauDisponible.clear();
         listePlateauDisponible.add(new LeColosseDeRhodes());
         listePlateauDisponible.add(new LePhareDAlexandrie());
@@ -17,7 +21,7 @@ public class GestionnairePlateau {
         listePlateauDisponible.add(new LaGrandePyramideDeGizeh());
     }
 
-    public static Plateau RandomPlateau() {
+    public Plateau RandomPlateau() {
         if(listePlateauDisponible.size() != 0) {
             double val = Math.random() * ( listePlateauDisponible.size() - 0 );
             Plateau p = listePlateauDisponible.get((int)val);
@@ -27,4 +31,7 @@ public class GestionnairePlateau {
         return null;
     }
 
+    public ArrayList<Plateau> getListePlateauDisponible() {
+        return listePlateauDisponible;
+    }
 }

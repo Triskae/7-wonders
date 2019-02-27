@@ -2,9 +2,9 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-class LesJardinsSuspendusDeBabylone extends Plateau {
+public class LesJardinsSuspendusDeBabylone extends Plateau {
 
-  LesJardinsSuspendusDeBabylone() {
+  public LesJardinsSuspendusDeBabylone() {
     ArrayList<String> etapes = new ArrayList<String>();
     etapes.add("3 points");
     etapes.add("Symbole scinetifique au choix");

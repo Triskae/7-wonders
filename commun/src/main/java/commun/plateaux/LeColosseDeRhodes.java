@@ -2,9 +2,9 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-class LeColosseDeRhodes extends Plateau {
+public class LeColosseDeRhodes extends Plateau {
 
-  LeColosseDeRhodes() {
+  public LeColosseDeRhodes() {
     ArrayList<String> etapes = new ArrayList<String>();
     etapes.add("3 points");
     etapes.add("2 guerres");

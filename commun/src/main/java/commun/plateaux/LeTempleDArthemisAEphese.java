@@ -2,9 +2,9 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-class LeTempleDArthemisAEphese extends Plateau {
+public class LeTempleDArthemisAEphese extends Plateau {
 
-  LeTempleDArthemisAEphese() {
+  public LeTempleDArthemisAEphese() {
     ArrayList<String> etapes = new ArrayList<String>();
     etapes.add("3 points");
     etapes.add("9 ors");

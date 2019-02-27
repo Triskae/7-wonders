@@ -2,9 +2,9 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-class LePhareDAlexandrie extends Plateau {
+public class LePhareDAlexandrie extends Plateau {
 
-  LePhareDAlexandrie() {
+  public LePhareDAlexandrie() {
     ArrayList<String> etapes = new ArrayList<String>();
     etapes.add("3 points");
     etapes.add("Ressource (matières premières) au choix");

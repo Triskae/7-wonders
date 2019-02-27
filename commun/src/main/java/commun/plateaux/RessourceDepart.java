@@ -2,7 +2,7 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-enum RessourceDepart {
+public enum RessourceDepart {
 
   ARGILE("Argile"),
   MINERAI ("Minerai"),

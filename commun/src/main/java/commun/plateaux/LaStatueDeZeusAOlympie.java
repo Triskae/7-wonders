@@ -2,9 +2,9 @@ package commun.plateaux;
 
 import java.util.ArrayList;
 
-class LaStatueDeZeusAOlympie extends Plateau {
+public class LaStatueDeZeusAOlympie extends Plateau {
 
-  LaStatueDeZeusAOlympie() {
+  public LaStatueDeZeusAOlympie() {
     ArrayList<String> etapes = new ArrayList<String>();
     etapes.add("3 points");
     etapes.add("Batiment gratuit");

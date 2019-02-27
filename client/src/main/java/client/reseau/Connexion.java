@@ -3,6 +3,7 @@ package client.reseau;
 import client.Client;
 import commun.Main;
 import commun.cartes.Carte;
+import commun.plateaux.Plateau;
 import io.socket.client.IO;
 import io.socket.client.Socket;
 import io.socket.emitter.Emitter;
@@ -59,6 +60,20 @@ public class Connexion {
                     }
                     controleur.setMain(new Main(mainRecue));
                     System.out.println("[CLIENT " + controleur.getNom() + "] - Main reçue");
+                }
+            });
+
+            connexion.on("envoiPlateau", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    String typePlateau = (String) objects[0];
+                    try {
+                        Plateau p = (Plateau) Class.forName(typePlateau).newInstance();
+                        controleur.setPlateaux(p);
+                    } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    System.out.println("[CLIENT " + controleur.getNom() + "] - Plateau reçu (" + controleur.getPlateaux() + ")");
                 }
             });
         } catch (URISyntaxException e) {

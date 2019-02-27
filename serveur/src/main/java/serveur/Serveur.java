@@ -7,6 +7,8 @@ import com.corundumstudio.socketio.listener.ConnectListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import commun.Deck;
 import commun.Main;
+import commun.plateaux.GestionnairePlateau;
+import commun.plateaux.Plateau;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -16,6 +18,7 @@ public class Serveur {
     private SocketIOServer server;
     private ArrayList<SocketIOClient> clients;
     private Deck deck;
+    private GestionnairePlateau gestionnairePlateau;
 
     public static void main(String[] args) throws Exception {
         new Serveur();
@@ -39,6 +42,11 @@ public class Serveur {
                 System.out.println("[SERVEUR] - Connexion de " + socketIOClient.getRemoteAddress());
                 clients.add(socketIOClient);
                 System.out.println("[SERVEUR] - Nombre de clients : " + clients.size());
+
+                System.out.println("[SERVEUR] - Envoi d'un plateau au client " + socketIOClient.getRemoteAddress());
+                Plateau p = gestionnairePlateau.RandomPlateau();
+                socketIOClient.sendEvent("envoiPlateau", p.getClass().getName());
+
                 System.out.println("[SERVEUR] - Envoi d'une main au client " + socketIOClient.getRemoteAddress());
                 Main main = new Main(deck.genererMain());
                 ArrayList<String> typesCartes = new ArrayList<>();
@@ -62,6 +70,7 @@ public class Serveur {
         System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + port);
         System.out.println("[SERVEUR] - Création d'un deck pour " + nbJoueurs + " joueurs");
         deck = new Deck(nbJoueurs);
+        gestionnairePlateau = new GestionnairePlateau();
     }
 
     public void stop() {

@@ -168,19 +168,8 @@ public class Client extends Thread {
 
         int port = 60001;
 
-        InetAddress inetAddress = null;
-        try {
-            inetAddress = InetAddress.getLocalHost();
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        String ipAdress = null;
-        if (inetAddress != null) {
-            ipAdress = inetAddress.getHostAddress();
-        }
-
         Client c = new Client("client", this.main);
-        connexion = new Connexion("http://"+ ipAdress + ":" + port, c);
+        connexion = new Connexion("http://"+ "127.0.0.1" + ":" + port, c);
         c.seConnecter();
 
         System.out.println("[CLIENT " + getNom() + "] - Déconnexion");

@@ -27,8 +27,7 @@ public class Serveur {
     private Serveur() throws Exception {
         int nbJoueurs = 3;
         int port = 60001;
-        InetAddress inetAddress = InetAddress.getLocalHost();
-        String ipAdress = inetAddress.getHostAddress();
+        String ipAdress = "127.0.0.1";
         Configuration config = new Configuration();
         config.setHostname(ipAdress);
         config.setPort(port);

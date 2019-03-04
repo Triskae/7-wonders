@@ -31,7 +31,7 @@ public class CarteTest {
     // Test vitesse (tout est crée en moins d'une seconde)
 
     @org.junit.Test(timeout =  1000)
-    public void testVitesseCreation(){
+    public void testVitesseCreation() throws Exception {
         new Autel();
         new Bains();
         new Theatre();
@@ -39,6 +39,19 @@ public class CarteTest {
         new Palissade();
         new Caserne();
         new TourDeGarde();
+        new Chantier();
+        new Cavite();
+        new BassinArgileux();
+        new Filon();
+        new Friche();
+        new Excavation();
+        new FosseArgileuse();
+        new ExploitationForestiere();
+        new Gisement();
+        new Mine();
+        new MetierATisser();
+        new Verrerie();
+        new Presse();
     }
 
 

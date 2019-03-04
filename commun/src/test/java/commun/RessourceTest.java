@@ -29,5 +29,4 @@ class RessourceTest {
     public void testAjoutRessourceNegative() throws Exception {
         Assertions.assertThrows(Exception.class, () -> new Ressource().ajouterRessource("Bois",-2));
     }
-
 }

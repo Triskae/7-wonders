@@ -4,10 +4,9 @@ import java.util.HashMap;
 
 public class Ressource {
 
-    private HashMap<String, Integer>ressource;
+    private HashMap<String, Integer>ressource = new HashMap<>();;
 
     public Ressource(){
-        ressource = new HashMap<>();
         ressource.put("Bois",0);
         ressource.put("Pierre",0);
         ressource.put("Minerai",0);
@@ -15,6 +14,10 @@ public class Ressource {
         ressource.put("Tissu",0);
         ressource.put("Verre",0);
         ressource.put("Papyrus",0);
+    }
+
+    public Ressource(String nom, int nb) throws Exception {
+        this.ajouterRessource(nom, nb);
     }
 
     public void ajouterRessource(String nom, int nb) throws Exception {

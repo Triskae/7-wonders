@@ -1,4 +1,9 @@
 package commun.cartes;
 
-public class Mine {
+import commun.Ressource;
+
+public class Mine extends CarteRessource {
+    public Mine() throws Exception {
+        super("Mine", new Ressource("Pierre",1), new Ressource("Minerai",1));
+    }
 }

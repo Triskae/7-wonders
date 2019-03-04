@@ -1,4 +1,9 @@
 package commun.cartes;
 
-public class BassinArgileux {
+import commun.Ressource;
+
+public class BassinArgileux extends CarteRessource{
+    public BassinArgileux() throws Exception {
+        super("Bassin Argileux",new Ressource("Argile",1));
+    }
 }

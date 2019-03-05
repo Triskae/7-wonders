@@ -1,5 +1,6 @@
 package serveur;
 
+import client.Client;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
@@ -10,7 +11,6 @@ import commun.Main;
 import commun.plateaux.GestionnairePlateau;
 import commun.plateaux.Plateau;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 
 public class Serveur {
@@ -20,12 +20,8 @@ public class Serveur {
     private Deck deck;
     private GestionnairePlateau gestionnairePlateau;
 
-    public static void main(String[] args) throws Exception {
-        new Serveur();
-    }
-
-    private Serveur() throws Exception {
-        int nbJoueurs = 3;
+    public Serveur(ArrayList<Client> listeClients) throws Exception {
+        int nbJoueurs = listeClients.size();
         int port = 60001;
         String ipAdress = "127.0.0.1";
         Configuration config = new Configuration();

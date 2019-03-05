@@ -168,9 +168,8 @@ public class Client extends Thread {
 
         int port = 60001;
 
-        Client c = new Client("client", this.main);
-        connexion = new Connexion("http://"+ "127.0.0.1" + ":" + port, c);
-        c.seConnecter();
+        connexion = new Connexion("http://"+ "127.0.0.1" + ":" + port, this);
+        this.seConnecter();
 
         System.out.println("[CLIENT " + getNom() + "] - Déconnexion");
     }

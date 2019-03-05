@@ -19,4 +19,15 @@ public class Main {
     public Main(ArrayList<Carte> cartes) {
         this.cartes = cartes;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        int i = 1;
+        for (Carte c : cartes) {
+            str.append(i).append(") ").append(c).append("   ");
+            i++;
+        }
+        return str.toString();
+    }
 }

@@ -15,6 +15,11 @@ public abstract class CarteMilitaire extends Carte{
     public int getNbAttaque() {
         return nbAttaque;
     }
+
+    @Override
+    public String toString() {
+        return this.getNom() + " [nombre de points d'attaque = " + nbAttaque + "] ";
+    }
 }
 
 

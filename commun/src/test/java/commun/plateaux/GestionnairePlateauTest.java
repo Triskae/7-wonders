@@ -28,6 +28,7 @@ public class GestionnairePlateauTest {
         liste.add("LaGrandePyramideDeGizeh");
 
         g.RemplirPlateau();
+
         Plateau p = g.RandomPlateau();
 
         assertTrue(liste.stream().anyMatch(item -> p.getClass().getSimpleName().equals(item)));

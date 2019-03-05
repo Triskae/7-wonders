@@ -21,11 +21,38 @@ public class GestionnairePlateau {
         listePlateauDisponible.add(new LaGrandePyramideDeGizeh());
     }
 
+    public Plateau RandomPlateauA() {
+        if(listePlateauDisponible.size() != 0) {
+            double val = Math.random() * ( listePlateauDisponible.size() - 0 );
+            Plateau p = listePlateauDisponible.get((int)val);
+            listePlateauDisponible.remove((int)val);
+            return p;
+        }
+        return null;
+    }
+
+    public Plateau RandomPlateauB() {
+        if(listePlateauDisponible.size() != 0) {
+            double val = Math.random() * ( listePlateauDisponible.size() - 0 );
+            Plateau p = listePlateauDisponible.get((int)val);
+            listePlateauDisponible.remove((int)val);
+            p.setFace('B');
+            return p;
+        }
+        return null;
+    }
+
     public Plateau RandomPlateau() {
         if(listePlateauDisponible.size() != 0) {
             double val = Math.random() * ( listePlateauDisponible.size() - 0 );
             Plateau p = listePlateauDisponible.get((int)val);
             listePlateauDisponible.remove((int)val);
+
+            int rand = (int) ( Math.random() * 2 + 1);
+            if(rand == 1) {
+                p.setFace('B');
+            }
+
             return p;
         }
         return null;

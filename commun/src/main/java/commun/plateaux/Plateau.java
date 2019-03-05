@@ -6,7 +6,9 @@ public abstract class Plateau {
 
   private String nom;
   private RessourceDepart ressourceDepart;
-  private ArrayList<String> etapes;
+  private ArrayList<String> etapesA;
+  private ArrayList<String> etapesB;
+  private char face;
 
   public String getNom() { return this.nom; }
 
@@ -15,8 +17,13 @@ public abstract class Plateau {
   }
 
   public ArrayList<String> getEtapes() {
-    return this.etapes;
+    if(this.getFace() == 'A')
+      return this.etapesA;
+    else
+      return this.etapesB;
   }
+
+  public char getFace() {return this.face; }
 
   public void setNom(String nom) {
     this.nom = nom;
@@ -26,12 +33,18 @@ public abstract class Plateau {
     this.ressourceDepart = ressourceDepart;
   }
 
-  public void setEtapes(ArrayList<String> etapes) {
-    this.etapes = etapes;
+  public void setEtapesA(ArrayList<String> etapesA) {
+    this.etapesA = etapesA;
   }
 
+  public void setEtapesB(ArrayList<String> etapesB) {
+    this.etapesB = etapesB;
+  }
+
+  public void setFace(char face) { this.face = face; }
+
   public String toString() {
-   return this.nom + " : < " + this.ressourceDepart + ", " + this.etapes + " > ";
+   return this.getNom() + " : < " + this.getRessource() + ", " + this.getEtapes() + " > ";
   }
 
 }

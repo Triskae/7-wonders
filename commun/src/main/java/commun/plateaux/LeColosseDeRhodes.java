@@ -5,14 +5,20 @@ import java.util.ArrayList;
 public class LeColosseDeRhodes extends Plateau {
 
   public LeColosseDeRhodes() {
-    ArrayList<String> etapes = new ArrayList<String>();
-    etapes.add("3 points");
-    etapes.add("2 guerres");
-    etapes.add("7 points");
+    ArrayList<String> etapesA = new ArrayList<String>();
+    etapesA.add("3 points");
+    etapesA.add("2 guerres");
+    etapesA.add("7 points");
+
+    ArrayList<String> etapesB = new ArrayList<String>();
+    etapesB.add("1 guerre, 3 points, 3 pièces");
+    etapesB.add("1 guerre, 4 points, 4 pièces");
 
     super.setNom("Le Colosse de Rhodes");
     super.setRessource(RessourceDepart.MINERAI);
-    super.setEtapes(etapes);
+    super.setEtapesA(etapesA);
+    super.setEtapesB(etapesB);
+    super.setFace('A');
   }
 
   public String toString() {

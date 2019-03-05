@@ -7,9 +7,13 @@ public class CarteRessource extends Carte{
 
     public CarteRessource(String nom, Ressource... ressources) {
         super(nom);
-        for( Ressource s : ressources ) {
+        for (Ressource s : ressources) {
             AjouterRessource aR = new AjouterRessource("AjouterRessource", s);
         }
+    }
 
+    @Override
+    public String toString() {
+        return this.getNom();
     }
 }

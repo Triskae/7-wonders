@@ -15,4 +15,9 @@ public abstract class CarteBatiment extends Carte {
     public int getNbPoint() {
         return nbPoint;
     }
+
+    @Override
+    public String toString() {
+        return this.getNom() + " [nombre de points = " + nbPoint + "] ";
+    }
 }

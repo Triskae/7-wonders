@@ -1,6 +1,7 @@
 package jeu;
 
 import client.Client;
+import serveur.Serveur;
 
 import java.util.ArrayList;
 
@@ -10,12 +11,13 @@ public class Jeu {
 
     public static void main(String[] args) throws Exception {
         genererClients(3);
+        Serveur serveur = new Serveur(clients);
     }
 
     private static void genererClients(int nbClients) throws InterruptedException {
-        for (int i = 0; i < nbClients; i++) {
-            clients.add(new Client("client" + i));
-        }
+        clients.add(new Client("Samuel"));
+        clients.add(new Client("Filipe"));
+        clients.add(new Client("Hugo"));
 
         for (Thread client : clients) {
             client.start();

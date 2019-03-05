@@ -30,7 +30,7 @@ public class Connexion {
                 public void call(Object... objects) {
                     //Lorsque on est connecté
                     controleur.onConnexion();
-
+                    connexion.emit("envoiIdentification", controleur.getNom());
                 }
             });
 
@@ -60,6 +60,7 @@ public class Connexion {
                     }
                     controleur.setMain(new Main(mainRecue));
                     System.out.println("[CLIENT " + controleur.getNom() + "] - Main reçue");
+                    System.out.println("[CLIENT " + controleur.getNom() + "] - " + controleur.getMain());
                 }
             });
 

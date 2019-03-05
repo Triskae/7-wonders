@@ -2,13 +2,10 @@ package client;
 
 import client.reseau.Connexion;
 import commun.Main;
-import commun.plateaux.LaGrandePyramideDeGizeh;
 import commun.plateaux.Plateau;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 public class Client extends Thread {
@@ -28,7 +25,6 @@ public class Client extends Thread {
         this.nom = nom;
         this.nombrePiece = 3;
         this.nombrePoint = 0;
-        this.plateaux = new LaGrandePyramideDeGizeh();
         this.main = mainJoueur;
     }
 
@@ -36,8 +32,6 @@ public class Client extends Thread {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
     }
-
-
 
     /**
      * un ensemble de getter et setter
@@ -168,9 +162,8 @@ public class Client extends Thread {
 
         int port = 60001;
 
-        Client c = new Client("client", this.main);
-        connexion = new Connexion("http://"+ "127.0.0.1" + ":" + port, c);
-        c.seConnecter();
+        connexion = new Connexion("http://"+ "127.0.0.1" + ":" + port, this);
+        this.seConnecter();
 
         System.out.println("[CLIENT " + getNom() + "] - Déconnexion");
     }

@@ -42,6 +42,21 @@ public class Deck {
                 carteEnJeu.add(new Caserne());
                 carteEnJeu.add(new TourDeGarde());
                 carteEnJeu.add(new Palissade());
+                // Marron
+                carteEnJeu.add(new Chantier());
+                carteEnJeu.add(new Cavite());
+                carteEnJeu.add(new BassinArgileux());
+                carteEnJeu.add(new Filon());
+                carteEnJeu.add(new Friche());
+                carteEnJeu.add(new Excavation());
+                carteEnJeu.add(new FosseArgileuse());
+                carteEnJeu.add(new ExploitationForestiere());
+                carteEnJeu.add(new Gisement());
+                carteEnJeu.add(new Mine());
+                // Blanche
+                carteEnJeu.add(new MetierATisser());
+                carteEnJeu.add(new Verrerie());
+                carteEnJeu.add(new Presse());
 				break;
 			}
 			default: {

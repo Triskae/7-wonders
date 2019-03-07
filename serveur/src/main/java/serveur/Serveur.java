@@ -1,17 +1,21 @@
 package serveur;
 
 import client.Client;
+import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
 import com.corundumstudio.socketio.SocketIOServer;
 import com.corundumstudio.socketio.listener.ConnectListener;
+import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import commun.Deck;
 import commun.Main;
+import commun.cartes.Carte;
 import commun.plateaux.GestionnairePlateau;
 import commun.plateaux.Plateau;
 
 import java.util.ArrayList;
+import java.util.EventListener;
 
 public class Serveur {
 
@@ -60,6 +64,15 @@ public class Serveur {
             }
         });
 
+        server.addEventListener("carteJouee", String.class, new DataListener<String>() {
+            @Override
+            public void onData(SocketIOClient socketIOClient, String carte, AckRequest ackRequest) throws Exception {
+                Carte carteTemp;
+                Object objCarte = Class.forName(carte).newInstance();
+                carteTemp = (Carte) objCarte;
+                System.out.println("-- SERVEUR CARTE JOUÉE-- " + carteTemp);
+            }
+        });
         server.start();
 
         System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + port);

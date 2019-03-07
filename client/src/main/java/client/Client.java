@@ -1,10 +1,17 @@
 package client;
 
 import client.reseau.Connexion;
+import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
+import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
+import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
+import com.googlecode.lanterna.screen.Screen;
+import com.googlecode.lanterna.screen.TerminalScreen;
+import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
+import com.googlecode.lanterna.terminal.Terminal;
 import commun.Main;
 import commun.plateaux.Plateau;
-import io.socket.client.Socket;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -18,6 +25,8 @@ public class Client extends Thread {
     private String nom;
     private Main main;
     private int pointMilitaire;
+    private Terminal terminal;
+    private Screen screen;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
@@ -90,35 +99,35 @@ public class Client extends Thread {
         this.connexion = connexion;
     }
 
-    void addPiece(int nombrePiece){
+    void addPiece(int nombrePiece) {
         this.nombrePiece += nombrePiece;
     }
 
-    void addPoint(int nombrePoint){
+    void addPoint(int nombrePoint) {
         this.nombrePoint += nombrePoint;
     }
 
-    void defausser(String nom){
+    void defausser(String nom) {
         removeCard(nom);
         nombrePiece += 3;
     }
 
-    private void removeCard(String nom){
+    private void removeCard(String nom) {
         int i = 0;
-        for(int compt = 0; compt < main.getCartes().size(); compt++){
-            if(nom.equals(main.getCartes().get(i).getNom())){
+        for (int compt = 0; compt < main.getCartes().size(); compt++) {
+            if (nom.equals(main.getCartes().get(i).getNom())) {
                 main.getCartes().remove(i);
             }
             i++;
         }
     }
 
-    public void addPointMilitaire(int point){
-        this.pointMilitaire+= point;
+    public void addPointMilitaire(int point) {
+        this.pointMilitaire += point;
     }
 
     // Joue une carte au Hasard
-    void playCard(){
+    void playCard() {
         double rand = (Math.random() * (main.getCartes().size()));
         main.getCartes().remove((int) rand);
     }
@@ -156,11 +165,30 @@ public class Client extends Thread {
         // Ici peux jouer
         System.out.println("[CLIENT " + getNom() + "] - Main reçue");
         System.out.println("[CLIENT " + getNom() + "] - " + getMain());
-        jouerMain();
+        connexion.emit("playerReady");
     }
 
-    public void jouerMain(){
-        connexion.emit("carteJouee", getMain().getCartes().get(0).getClass().getName());
+    public void jouerMain() {
+        try {
+            terminal = new DefaultTerminalFactory().createTerminal();
+            screen = new TerminalScreen(terminal);
+            screen.startScreen();
+            final WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
+            ActionListDialogBuilder actionListDialogBuilder = new ActionListDialogBuilder();
+            actionListDialogBuilder.setTitle("Choisi ta carte");
+
+
+            for (int i = 0; i < main.getCartes().size(); i++) {
+                int finalI = i;
+                actionListDialogBuilder.addAction(main.getCartes().get(i).getNom(), () -> {
+                    connexion.emit("carteJouee", getMain().getCartes().get(finalI).getClass().getName());
+                });
+            }
+            actionListDialogBuilder.build().showDialog(textGUI);
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -175,7 +203,7 @@ public class Client extends Thread {
 
         int port = 60001;
 
-        connexion = new Connexion("http://"+ "127.0.0.1" + ":" + port, this);
+        connexion = new Connexion("http://" + "127.0.0.1" + ":" + port, this);
         this.seConnecter();
     }
 }

@@ -35,6 +35,18 @@ public class Serveur {
 
         // creation du serveur
         server = new SocketIOServer(config);
+        server.start();
+
+        System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + port);
+        System.out.println("[SERVEUR] - Création d'un deck pour " + nbJoueurs + " joueurs");
+
+
+        deck = new Deck(nbJoueurs);
+        gestionnairePlateau = new GestionnairePlateau();
+
+        /*
+            Tous les listeners du serveur.
+         */
 
         server.addConnectListener(new ConnectListener() {
             public void onConnect(SocketIOClient socketIOClient) {
@@ -73,12 +85,14 @@ public class Serveur {
                 System.out.println("-- SERVEUR CARTE JOUÉE-- " + carteTemp);
             }
         });
-        server.start();
 
-        System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + port);
-        System.out.println("[SERVEUR] - Création d'un deck pour " + nbJoueurs + " joueurs");
-        deck = new Deck(nbJoueurs);
-        gestionnairePlateau = new GestionnairePlateau();
+        server.addEventListener("playerReady", String.class, new DataListener<String>() {
+            @Override
+            public void onData(SocketIOClient socketIOClient, String s, AckRequest ackRequest) throws Exception {
+                //Ici faire tous les tests pour savoir si tous les joueurs sont prets
+                socketIOClient.sendEvent("turn");
+            }
+        });
     }
 
     public void stop() {

@@ -41,5 +41,10 @@ public class Ressource {
         return ressource.get(type);
     }
 
-
+    @Override
+    public String toString() {
+        return "Ressource{" +
+                "ressource=" + ressource +
+                '}';
+    }
 }

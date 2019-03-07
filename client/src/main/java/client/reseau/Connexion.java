@@ -43,6 +43,13 @@ public class Connexion {
                 }
             });
 
+            connexion.on("turn", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    client.jouerMain();
+                }
+            });
+
             connexion.on("envoiMain", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {

@@ -1,6 +1,8 @@
 package commun.cartes;
 
-public abstract class Carte {
+import java.io.Serializable;
+
+public abstract class Carte implements Serializable {
 
     private String nom;
 
@@ -10,5 +12,12 @@ public abstract class Carte {
 
     public String getNom() {
         return nom;
+    }
+
+    @Override
+    public String toString() {
+        return "Carte{" +
+                "nom='" + nom + '\'' +
+                '}';
     }
 }

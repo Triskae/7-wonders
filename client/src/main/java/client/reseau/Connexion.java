@@ -15,12 +15,12 @@ import java.util.ArrayList;
 
 public class Connexion {
 
-    private final Client controleur;
+    private final Client client;
     private Socket connexion;
 
     public Connexion(String urlServeur, Client ctrl) {
-        this.controleur = ctrl;
-        controleur.setConnexion(this);
+        this.client = ctrl;
+        client.setConnexion(this);
 
         try {
             connexion = IO.socket(urlServeur);
@@ -29,8 +29,7 @@ public class Connexion {
                 @Override
                 public void call(Object... objects) {
                     //Lorsque on est connecté
-                    controleur.onConnexion();
-                    connexion.emit("envoiIdentification", controleur.getNom());
+                    client.onConnexion();
                 }
             });
 
@@ -39,7 +38,7 @@ public class Connexion {
                 public void call(Object... objects) {
                     connexion.disconnect();
                     connexion.close();
-                    controleur.finPartie();
+                    client.finPartie();
 
                 }
             });
@@ -58,9 +57,8 @@ public class Connexion {
                             e.printStackTrace();
                         }
                     }
-                    controleur.setMain(new Main(mainRecue));
-                    System.out.println("[CLIENT " + controleur.getNom() + "] - Main reçue");
-                    System.out.println("[CLIENT " + controleur.getNom() + "] - " + controleur.getMain());
+                    client.setMain(new Main(mainRecue));
+                    client.readyToPlay();
                 }
             });
 
@@ -70,11 +68,11 @@ public class Connexion {
                     String typePlateau = (String) objects[0];
                     try {
                         Plateau p = (Plateau) Class.forName(typePlateau).newInstance();
-                        controleur.setPlateaux(p);
+                        client.setPlateaux(p);
                     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-                    System.out.println("[CLIENT " + controleur.getNom() + "] - Plateau reçu (" + controleur.getPlateaux() + ")");
+                    System.out.println("[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")");
                 }
             });
         } catch (URISyntaxException e) {

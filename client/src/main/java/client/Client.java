@@ -3,6 +3,7 @@ package client;
 import client.reseau.Connexion;
 import commun.Main;
 import commun.plateaux.Plateau;
+import io.socket.client.Socket;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -142,12 +143,24 @@ public class Client extends Thread {
 
     public void onConnexion() {
         System.out.println("[CLIENT " + getNom() + "] - Connexion réussie");
+        connexion.emit("envoiIdentification", getNom());
     }
 
     public void finPartie() {
         synchronized (attenteDeconnexion) {
             attenteDeconnexion.notify();
         }
+    }
+
+    public void readyToPlay() {
+        // Ici peux jouer
+        System.out.println("[CLIENT " + getNom() + "] - Main reçue");
+        System.out.println("[CLIENT " + getNom() + "] - " + getMain());
+        jouerMain();
+    }
+
+    public void jouerMain(){
+        connexion.emit("carteJouee", getMain().getCartes().get(0).getClass().getName());
     }
 
     @Override
@@ -164,7 +177,5 @@ public class Client extends Thread {
 
         connexion = new Connexion("http://"+ "127.0.0.1" + ":" + port, this);
         this.seConnecter();
-
-        System.out.println("[CLIENT " + getNom() + "] - Déconnexion");
     }
 }

@@ -1,8 +1,7 @@
 package commun.cartes;
 
-import java.io.Serializable;
 
-public abstract class Carte implements Serializable {
+public abstract class Carte {
 
     private String nom;
 

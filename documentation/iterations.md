@@ -12,43 +12,61 @@ Enfin Alexis doit créer **les joueurs** en comptant ses points, mais également
 
 ### Itération 2 
 
-- Correction des retours
-- Création cartes de guerre (age 1)
-- Rassemblement des classes Client et Joueur + gestion des points d'attaque
-- Génération et distribution des decks depuis le serveur
-- Test plateau A
+Prendre en compte les **retours du client** et réaliser les corrections demandées.
+
+Tout d’abord, des ajouts seront effectués pour **la gestion des cartes**. Les cartes militaires du 1er Age seront disponible en jeu à la constitution des decks.
+
+Dans un second temps, les classes **Client** et **Joueur** seront fusionnées et **la gestion des points d’attaques** sera mise en place.
+Pour finir, les **générations** et la **distribution** des decks à partir du serveur sera implémenté.
+
+Les **tests** des plateaux A seront complétés.
 
 ### Itération 3
 
-- Correction des retours
-- Création des cartes ressources (age 1)
-- Création des plateaux B et des tests
-- Le joueur peut demander à jouer une carte ou à la défausser
+Prendre en compte les **retours du client** et réaliser les corrections demandées.
+
+Tout d’abord, des ajouts seront effectués pour **la gestion des cartes**. Les cartes ressources du 1er Age seront disponible en jeu à la constitution des decks.
+
+Dans un second temps, **la gestion des plateaux** sera mise à jour avec l’ajout des plateaux B.
+
+Pour finir, à la fin de cette itération **le joueur** pourra demander à jouer une carte ou à la défausser.
 
 ### Itération 4
 
-- Correction des retours
-- Le joueur a des ressources
-- Créer les cartes scientifiques (age 1)
-- Le joueur peut demander à jouer plusieurs cartes (une main en faisant tourner)
+Prendre en compte les **retours du client** et réaliser les corrections demandées.
+
+Tout d’abord, cette itération permettra de mettre en place l’assignation de ressource à un joueur.
+
+Dans un second temps, des ajouts seront effectués pour **la gestion des cartes**. Les cartes scientifiques du 1er Age seront disponible en jeu à la constitution des decks.
+
+Pour finir, à la fin de cette itération le joueur pourra demander à jouer plusieurs cartes (une main en faisant tourner).
 
 ### Itération 5
 
-- Correction des retours
-- Prise en compte des ressources (cout)
-- Faire tous les points de joueur
-- Faire un âge complet 
+Prendre en compte les **retours du client** et réaliser les corrections demandées.
+
+Tout d’abord, lors de cette itération la prise en compte des ressources des différentes cartes que le joueur souhaite utiliser sera mise en place.
+
+Dans un second temps, tous les points de joueur seront disponibles.
+
+Pour finir, à la fin de cette itération le jeu sera assez développé pour que les joueurs jouent un âge complet.
 
 ### Itération 6
 
-- Correction des retours
-- Travail sur le joueur IA (stratégie en fonction de couleur)
-- Création carte de commerce 
+Prendre en compte les **retours du client** et réaliser les corrections demandées.
+
+Tout d’abord, un développement de l’IA sera effectué pour mettre en place une stratégie de jeu en fonction des couleurs des cartes.
+
+Dans un second temps, des ajouts seront effectués pour **la gestion des cartes**. Les cartes commerces seront disponible en jeu à la constitution des decks.
+
 - Anticipation prise en compte âges 2 et 3
 
 ### Itération 7
 
-- Correction des retours
-- Prise en compte de la gratuité de certaines cartes 
-- Travail sur le joueur IA (stratégie en fonction de couleur)
+Prendre en compte les **retours du client** et réaliser les corrections demandées.
+
+- Prise en compte de la gratuité de certaines cartes
+
+Dans un second temps, le développement de l’IA sera prolongé pour mettre en place une stratégie de jeu en fonction des couleurs des cartes.
+
 - Anticipation prise en compte âges 2 et 3

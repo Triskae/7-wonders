@@ -16,7 +16,7 @@ public class LesJardinsSuspendusDeBabylone extends Plateau {
     etapesB.add("Symbole scientifique au choix");
 
     super.setNom("Les Jardins Suspendus de Babylone");
-    super.setRessource(RessourceDepart.PIERRE);
+    super.setRessource(RessourceDepart.ARGILE);
     super.setEtapesA(etapesA);
     super.setEtapesB(etapesB);
     super.setFace('A');

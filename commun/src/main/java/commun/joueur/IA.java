@@ -12,13 +12,15 @@ public class IA {
         t.setIA(true);
     }
 
+    //Stratégie nulle joue juste une carte au hasard
     public void jouerCarteAlea(){
         double rand = (Math.random() * (c.getMain().getCartes().size()));
+        c.playCard(c.getMain().getCartes().get((int) rand));
         c.getMain().getCartes().remove((int) rand);
     }
 
     public void jouerCarteBleu(){
-        
+
     }
 
     public void tour() {

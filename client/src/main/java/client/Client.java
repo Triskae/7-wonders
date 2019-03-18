@@ -9,6 +9,7 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import commun.Main;
+import commun.cartes.Carte;
 import commun.joueur.IA;
 import commun.plateaux.Plateau;
 
@@ -147,14 +148,19 @@ public class Client extends Thread {
             instanceIA.tour();
         }
         else{
-            playCard();
+            choixUtilisateur();
         }
     }
 
-    // Joue une carte au Hasard
-    public void playCard(){
-        double rand = (Math.random() * (main.getCartes().size()));
-        main.getCartes().remove((int) rand);
+    public void choixUtilisateur() {
+        // Cas ou c'est un vrai joueur qui joue
+        playCard(null);
+    }
+
+    // Envoie la carte donné au serveur
+    public void playCard(Carte carte){
+        connexion.emit("carteJouee", carte.getClass().getName());
+
     }
 
     public String toString() {
@@ -193,7 +199,7 @@ public class Client extends Thread {
         connexion.emit("playerReady");
     }
 
-    public void jouerMain() {
+    /*public void jouerMain() {
         try {
             terminal = new DefaultTerminalFactory().createTerminal();
             screen = new TerminalScreen(terminal);
@@ -214,7 +220,7 @@ public class Client extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     @Override
     public void run() {

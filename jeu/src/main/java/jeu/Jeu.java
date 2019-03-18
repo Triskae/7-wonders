@@ -15,9 +15,9 @@ public class Jeu {
     }
 
     private static void genererClients(int nbClients) throws InterruptedException {
-        clients.add(new Client("Samuel"));
-        clients.add(new Client("Filipe"));
-        clients.add(new Client("Hugo"));
+        clients.add(new Client("Samuel", true));
+        clients.add(new Client("Filipe", true));
+        clients.add(new Client("Hugo", true));
 
         for (Thread client : clients) {
             client.start();

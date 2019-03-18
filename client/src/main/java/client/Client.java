@@ -25,6 +25,7 @@ public class Client extends Thread {
     private String nom;
     private Main main;
     private int pointMilitaire;
+    private boolean isIA=false;
     private Terminal terminal;
     private Screen screen;
 
@@ -112,7 +113,15 @@ public class Client extends Thread {
         nombrePiece += 3;
     }
 
-    private void removeCard(String nom) {
+    public boolean isIA() {
+        return isIA;
+    }
+
+    public void setIA(boolean IA) {
+        isIA = IA;
+    }
+
+    private void removeCard(String nom){
         int i = 0;
         for (int compt = 0; compt < main.getCartes().size(); compt++) {
             if (nom.equals(main.getCartes().get(i).getNom())) {
@@ -126,8 +135,17 @@ public class Client extends Thread {
         this.pointMilitaire += point;
     }
 
+    public void tour(){
+        if(isIA){
+            //appel méthode de jeu classe IA
+        }
+        else{
+            playCard();
+        }
+    }
+
     // Joue une carte au Hasard
-    void playCard() {
+    public void playCard(){
         double rand = (Math.random() * (main.getCartes().size()));
         main.getCartes().remove((int) rand);
     }

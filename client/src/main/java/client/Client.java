@@ -9,6 +9,7 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import commun.Main;
+import commun.joueur.IA;
 import commun.plateaux.Plateau;
 
 import java.io.IOException;
@@ -28,6 +29,7 @@ public class Client extends Thread {
     private boolean isIA=false;
     private Terminal terminal;
     private Screen screen;
+    private IA instanceIA;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
@@ -39,9 +41,13 @@ public class Client extends Thread {
         this.main = mainJoueur;
     }
 
-    public Client(String nom) {
+    public Client(String nom, boolean isIA) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
+
+        if (isIA) {
+            instanceIA = new IA(this);
+        }
     }
 
     /**
@@ -138,6 +144,7 @@ public class Client extends Thread {
     public void tour(){
         if(isIA){
             //appel méthode de jeu classe IA
+            instanceIA.tour();
         }
         else{
             playCard();

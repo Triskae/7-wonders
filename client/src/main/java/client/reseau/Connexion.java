@@ -80,6 +80,11 @@ public class Connexion {
                         e.printStackTrace();
                     }
                     System.out.println("[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")");
+                    try {
+                        client.addRessourceDepart(client.getPlateaux());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         } catch (URISyntaxException e) {

@@ -11,12 +11,14 @@ import com.googlecode.lanterna.terminal.Terminal;
 import commun.Main;
 import commun.cartes.Carte;
 import commun.joueur.IA;
+import commun.Ressource;
 import commun.plateaux.Plateau;
 
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 public class Client extends Thread {
 
@@ -24,6 +26,7 @@ public class Client extends Thread {
     private int nombrePiece;
     private int nombrePoint;
     private Plateau plateaux;
+    private Ressource ressources;
     private String nom;
     private Main main;
     private int pointMilitaire;
@@ -45,10 +48,10 @@ public class Client extends Thread {
     public Client(String nom, boolean isIA) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
-
         if (isIA) {
             instanceIA = new IA(this);
         }
+        this.ressources = new Ressource();
     }
 
     /**
@@ -94,6 +97,8 @@ public class Client extends Thread {
     public void setPlateaux(Plateau plateaux) {
         this.plateaux = plateaux;
     }
+
+    public Ressource getRessources() { return ressources; }
 
     public Main getMain() {
         return this.main;
@@ -161,6 +166,31 @@ public class Client extends Thread {
     public void playCard(Carte carte){
         connexion.emit("carteJouee", carte.getClass().getName());
 
+    }
+
+    public void addRessourceDepart(Plateau p) throws Exception {
+        System.out.println(this.getNom());
+
+        if(p.getNom().equals("La Grande Pyramide de Gizeh"))
+            this.getRessources().ajouterRessource("Pierre", 1);
+
+        else if(p.getNom().equals("La Statue de Zeus à Olympie"))
+            this.getRessources().ajouterRessource("Bois", 1);
+
+        else if(p.getNom().equals("Le Colosse de Rhodes"))
+            this.getRessources().ajouterRessource("Minerai", 1);
+
+        else if(p.getNom().equals("Le Mausolée d'Halicarnasse"))
+            this.getRessources().ajouterRessource("Tissu", 1);
+
+        else if(p.getNom().equals("Le Phare d'Alexandrie"))
+            this.getRessources().ajouterRessource("Verre", 1);
+
+        else if(p.getNom().equals("Les Jardins Suspendus de Babylone"))
+            this.getRessources().ajouterRessource("Argile", 1);
+
+        else if(p.getNom().equals("Le Temple d'Arthemis à Ephese"))
+            this.getRessources().ajouterRessource("Papyrus", 1);
     }
 
     public String toString() {

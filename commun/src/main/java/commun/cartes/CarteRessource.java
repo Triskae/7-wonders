@@ -16,4 +16,10 @@ public class CarteRessource extends Carte{
     public String toString() {
         return this.getNom();
     }
+
+    public int getType(){
+        return 3;
+    }
+
+    public int getPoint(){return 0;}
 }

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class LesJardinsSuspendusDeBabylone extends Plateau {
 
   public LesJardinsSuspendusDeBabylone() {
+
     ArrayList<String> etapesA = new ArrayList<String>();
     etapesA.add("3 points");
     etapesA.add("Symbole scientifique au choix");

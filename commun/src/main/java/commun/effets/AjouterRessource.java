@@ -9,6 +9,7 @@ public class AjouterRessource extends Effet {
         //Joueur.ajouterRessource(nom, nb);
     }
 
+    public int getNbDePoint(){return 0;}
 
 
 }

@@ -12,8 +12,12 @@ public abstract class CarteMilitaire extends Carte{
         AjouterPointMilitaire am = new AjouterPointMilitaire("AjouterPointMilitaire", nbAttaque);
     }
 
-    public int getNbAttaque() {
+    public int getPoint() {
         return nbAttaque;
+    }
+
+    public int getType(){
+        return 2;
     }
 
     @Override

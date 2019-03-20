@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PlateauTest {
 
-    // Test création plateau Gizeh
     @org.junit.Test
     public void testEtapesGizeh(){
         ArrayList<String> etapes = new ArrayList<String>();

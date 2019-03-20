@@ -12,8 +12,12 @@ public abstract class CarteBatiment extends Carte {
         AjouterPointVictoire ap = new AjouterPointVictoire("AjouterPointVictoire", nbPoint);
     }
 
-    public int getNbPoint() {
+    public int getPoint() {
         return nbPoint;
+    }
+
+    public int getType(){
+        return 1;
     }
 
     @Override

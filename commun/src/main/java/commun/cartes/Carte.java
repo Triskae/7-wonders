@@ -19,4 +19,9 @@ public abstract class Carte {
                 "nom='" + nom + '\'' +
                 '}';
     }
+
+    public abstract int getType();
+
+    public abstract int getPoint();
+
 }

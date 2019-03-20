@@ -7,4 +7,7 @@ public abstract class Effet {
 	public Effet(String nom) {
 		this.nom=nom;
 	}
+
+	abstract int getNbDePoint();
+
 }

@@ -3,7 +3,6 @@ package commun.plateaux;
 import java.util.ArrayList;
 
 public class LeMausoléeDHalicarnasse extends Plateau {
-
   public LeMausoléeDHalicarnasse() {
     ArrayList<String> etapesA = new ArrayList<String>();
     etapesA.add("3 points");

@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class LePhareDAlexandrie extends Plateau {
 
   public LePhareDAlexandrie() {
+
     ArrayList<String> etapesA = new ArrayList<String>();
     etapesA.add("3 points");
     etapesA.add("Ressource (matières premières) au choix");

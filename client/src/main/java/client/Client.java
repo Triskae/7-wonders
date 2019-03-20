@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Scanner;
 import java.util.HashMap;
 
 public class Client extends Thread {
@@ -154,6 +155,29 @@ public class Client extends Thread {
         }
         else{
             choixUtilisateur();
+        }
+    // Joue une carte au Hasard
+    void playCardrand(){
+        double rand = (Math.random() * (main.getCartes().size()));
+        main.getCartes().remove((int) rand);
+    }
+
+    void playCard(){
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Veuillez saisir le nom de la carte que vous voulez jouer :");
+        String str = sc.nextLine();
+        for(int compt=0; compt<getMain().getCartes().size(); compt ++){
+            if(str.equals(getMain().getCartes().get(compt).getNom())){
+                if(getMain().getCartes().get(compt).getNom().equals(str)){
+                    switch (getMain().getCartes().get(compt).getType()){
+                        case 1 :
+                            addPoint(getMain().getCartes().get(compt).getPoint());
+                            break;
+                        case 2 :
+                            setPointMilitaire(getPointMilitaire() + getMain().getCartes().get(compt).getPoint());
+                    }
+                }
+            }
         }
     }
 

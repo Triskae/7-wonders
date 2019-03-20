@@ -9,6 +9,8 @@ import com.googlecode.lanterna.screen.TerminalScreen;
 import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import commun.Main;
+import commun.cartes.Carte;
+import commun.joueur.IA;
 import commun.Ressource;
 import commun.plateaux.Plateau;
 
@@ -28,8 +30,10 @@ public class Client extends Thread {
     private String nom;
     private Main main;
     private int pointMilitaire;
+    private boolean isIA=false;
     private Terminal terminal;
     private Screen screen;
+    private IA instanceIA;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
@@ -41,9 +45,12 @@ public class Client extends Thread {
         this.main = mainJoueur;
     }
 
-    public Client(String nom) {
+    public Client(String nom, boolean isIA) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
+        if (isIA) {
+            instanceIA = new IA(this);
+        }
         this.ressources = new Ressource();
     }
 
@@ -118,7 +125,15 @@ public class Client extends Thread {
         nombrePiece += 3;
     }
 
-    private void removeCard(String nom) {
+    public boolean isIA() {
+        return isIA;
+    }
+
+    public void setIA(boolean IA) {
+        isIA = IA;
+    }
+
+    private void removeCard(String nom){
         int i = 0;
         for (int compt = 0; compt < main.getCartes().size(); compt++) {
             if (nom.equals(main.getCartes().get(i).getNom())) {
@@ -132,10 +147,25 @@ public class Client extends Thread {
         this.pointMilitaire += point;
     }
 
-    // Joue une carte au Hasard
-    void playCard() {
-        double rand = (Math.random() * (main.getCartes().size()));
-        main.getCartes().remove((int) rand);
+    public void tour(){
+        if(isIA){
+            //appel méthode de jeu classe IA
+            instanceIA.tour();
+        }
+        else{
+            choixUtilisateur();
+        }
+    }
+
+    public void choixUtilisateur() {
+        // Cas ou c'est un vrai joueur qui joue
+        playCard(null);
+    }
+
+    // Envoie la carte donné au serveur
+    public void playCard(Carte carte){
+        connexion.emit("carteJouee", carte.getClass().getName());
+
     }
 
     public void addRessourceDepart(Plateau p) throws Exception {
@@ -199,7 +229,7 @@ public class Client extends Thread {
         connexion.emit("playerReady");
     }
 
-    public void jouerMain() {
+    /*public void jouerMain() {
         try {
             terminal = new DefaultTerminalFactory().createTerminal();
             screen = new TerminalScreen(terminal);
@@ -220,7 +250,7 @@ public class Client extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     @Override
     public void run() {

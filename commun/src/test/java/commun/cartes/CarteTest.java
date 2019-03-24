@@ -11,7 +11,7 @@ public class CarteTest {
     @org.junit.Test
     public void testCreationBatiment(){
         Bains bain = new Bains();
-        assertEquals(3, bain.getNbPoint());
+        assertEquals(3, bain.getPoint());
     }
 
     @org.junit.Test
@@ -25,7 +25,7 @@ public class CarteTest {
     @org.junit.Test
     public void testCreationMilitaire(){
         Caserne caserne = new Caserne();
-        assertEquals(1, caserne.getNbAttaque());
+        assertEquals(1, caserne.getPoint());
     }
 
     // Test vitesse (tout est crée en moins d'une seconde)

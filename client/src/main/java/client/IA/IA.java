@@ -1,4 +1,4 @@
-package commun.joueur;
+package client.IA;
 
 import client.Client;
 
@@ -7,9 +7,10 @@ public class IA {
     Client c;
     String strat;
 
-    public IA(Client t) {
-        this.c = t;
-        t.setIA(true);
+    public IA(Client c, String strategie) {
+        strat = strategie;
+        this.c = c;
+        c.setIA(true);
     }
 
     //Stratégie nulle joue juste une carte au hasard

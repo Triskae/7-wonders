@@ -1,25 +1,18 @@
 package client;
 
 import client.reseau.Connexion;
-import com.googlecode.lanterna.gui2.MultiWindowTextGUI;
-import com.googlecode.lanterna.gui2.WindowBasedTextGUI;
-import com.googlecode.lanterna.gui2.dialogs.ActionListDialogBuilder;
 import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.screen.TerminalScreen;
-import com.googlecode.lanterna.terminal.DefaultTerminalFactory;
 import com.googlecode.lanterna.terminal.Terminal;
 import commun.Main;
 import commun.cartes.Carte;
-import commun.joueur.IA;
+import client.IA.IA;
 import commun.Ressource;
 import commun.plateaux.Plateau;
 
-import java.io.IOException;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Scanner;
-import java.util.HashMap;
 
 public class Client extends Thread {
 
@@ -50,7 +43,7 @@ public class Client extends Thread {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
         if (isIA) {
-            instanceIA = new IA(this);
+            instanceIA = new IA(this, "");
         }
         this.ressources = new Ressource();
     }
@@ -121,8 +114,8 @@ public class Client extends Thread {
         this.nombrePoint += nombrePoint;
     }
 
-    void defausser(String nom) {
-        removeCard(nom);
+    void defausser(Carte carte) {
+        removeCard(carte);
         nombrePiece += 3;
     }
 
@@ -134,62 +127,52 @@ public class Client extends Thread {
         isIA = IA;
     }
 
-    private void removeCard(String nom){
-        int i = 0;
-        for (int compt = 0; compt < main.getCartes().size(); compt++) {
-            if (nom.equals(main.getCartes().get(i).getNom())) {
-                main.getCartes().remove(i);
-            }
-            i++;
-        }
+    private void removeCard(Carte carte){
+        getMain().getCartes().remove(carte);
     }
 
     public void addPointMilitaire(int point) {
         this.pointMilitaire += point;
     }
 
-    public void tour(){
-        if(isIA){
+    public void tour() {
+        if (isIA) {
             //appel méthode de jeu classe IA
             instanceIA.tour();
-        }
-        else{
+        } else {
             choixUtilisateur();
         }
+    }
     // Joue une carte au Hasard
     void playCardrand(){
         double rand = (Math.random() * (main.getCartes().size()));
         main.getCartes().remove((int) rand);
     }
 
-    void playCard(){
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Veuillez saisir le nom de la carte que vous voulez jouer :");
-        String str = sc.nextLine();
-        for(int compt=0; compt<getMain().getCartes().size(); compt ++){
-            if(str.equals(getMain().getCartes().get(compt).getNom())){
-                if(getMain().getCartes().get(compt).getNom().equals(str)){
-                    switch (getMain().getCartes().get(compt).getType()){
-                        case 1 :
-                            addPoint(getMain().getCartes().get(compt).getPoint());
-                            break;
-                        case 2 :
-                            setPointMilitaire(getPointMilitaire() + getMain().getCartes().get(compt).getPoint());
-                    }
-                }
-            }
-        }
+    public void playCard(Carte carte){
+        connexion.emit("carteJouee", carte.getClass().getName());
+        removeCard(carte);
     }
 
     public void choixUtilisateur() {
-        // Cas ou c'est un vrai joueur qui joue
-        playCard(null);
-    }
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Veuillez saisir le numéro de la carte que vous voulez jouer :");
 
-    // Envoie la carte donné au serveur
-    public void playCard(Carte carte){
-        connexion.emit("carteJouee", carte.getClass().getName());
+        for (int i = 0; i < getMain().getCartes().size(); i++) {
+            System.out.println(i + " - " + getMain().getCartes().get(i).getNom());
+        }
 
+        int nbCartes = Integer.parseInt(sc.nextLine());
+
+
+        switch (getMain().getCartes().get(nbCartes).getType()){
+            case 1 :
+                addPoint(getMain().getCartes().get(nbCartes).getPoint());
+                break;
+            case 2 :
+                setPointMilitaire(getPointMilitaire() + getMain().getCartes().get(nbCartes).getPoint());
+        }
+        playCard(getMain().getCartes().get(nbCartes));
     }
 
     public void addRessourceDepart(Plateau p) throws Exception {

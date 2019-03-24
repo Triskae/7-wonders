@@ -9,7 +9,6 @@ class ClientTest {
 
     @BeforeEach
     void setUp() {
-          s
     }
 
     @Test

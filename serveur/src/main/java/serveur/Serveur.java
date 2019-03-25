@@ -1,6 +1,5 @@
 package serveur;
 
-import client.Client;
 import com.corundumstudio.socketio.AckRequest;
 import com.corundumstudio.socketio.Configuration;
 import com.corundumstudio.socketio.SocketIOClient;
@@ -18,13 +17,20 @@ import java.util.ArrayList;
 
 public class Serveur {
 
+    private static int NBJOUEURS = 3;
     private SocketIOServer server;
     private ArrayList<SocketIOClient> clients;
     private Deck deck;
     private GestionnairePlateau gestionnairePlateau;
+    private int nbJoueurJouee = 0;
+    private int nbJoueurPrets = 0;
 
-    public Serveur(ArrayList<Client> listeClients) throws Exception {
-        int nbJoueurs = listeClients.size();
+    public static void main(String[] args) throws Exception {
+    	Serveur serveur = new Serveur();
+    }
+
+    public Serveur() throws Exception {
+        //int nbJoueurs = listeClients.size();
         int port = 60001;
         String ipAdress = "127.0.0.1";
         Configuration config = new Configuration();
@@ -37,10 +43,10 @@ public class Serveur {
         server.start();
 
         System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + port);
-        System.out.println("[SERVEUR] - Création d'un deck pour " + nbJoueurs + " joueurs");
+        System.out.println("[SERVEUR] - Création d'un deck pour " + NBJOUEURS + " joueurs");
 
 
-        deck = new Deck(nbJoueurs);
+        deck = new Deck(NBJOUEURS);
         gestionnairePlateau = new GestionnairePlateau();
 
         /*
@@ -53,18 +59,9 @@ public class Serveur {
                 clients.add(socketIOClient);
                 System.out.println("[SERVEUR] - Nombre de clients : " + clients.size());
 
-                System.out.println("[SERVEUR] - Envoi d'un plateau au client " + socketIOClient.getRemoteAddress());
-                Plateau p = gestionnairePlateau.RandomPlateau();
-                socketIOClient.sendEvent("envoiPlateau", p.getClass().getName());
-
-                System.out.println("[SERVEUR] - Envoi d'une main au client " + socketIOClient.getRemoteAddress());
-                Main main = new Main(deck.genererMain());
-                ArrayList<String> typesCartes = new ArrayList<>();
-                for (int i = 0; i < main.getCartes().size(); i++) {
-                    typesCartes.add(main.getCartes().get(i).getClass().getName());
+                if (clients.size() == NBJOUEURS) {
+                    distribuerJeu();
                 }
-                socketIOClient.sendEvent("envoiMain", typesCartes);
-                System.out.println("[SERVEUR] - Nombre de cartes restantes dans le deck : " + deck.getDeck().size());
             }
         });
 
@@ -82,6 +79,14 @@ public class Serveur {
                 Object objCarte = Class.forName(carte).newInstance();
                 carteTemp = (Carte) objCarte;
                 System.out.println("-- SERVEUR CARTE JOUÉE-- " + carteTemp);
+                nbJoueurJouee++;
+
+                System.out.println(clients.size());
+
+                if (nbJoueurJouee == clients.size()) {
+                    System.out.println("tous les joueurs on jouée");
+                    nbJoueurJouee = 0;
+                }
             }
         });
 
@@ -89,12 +94,36 @@ public class Serveur {
             @Override
             public void onData(SocketIOClient socketIOClient, String s, AckRequest ackRequest) throws Exception {
                 //Ici faire tous les tests pour savoir si tous les joueurs sont prets
-                socketIOClient.sendEvent("turn");
+                nbJoueurPrets++;
+                if (nbJoueurPrets == clients.size()) {
+                    for (SocketIOClient c : clients) {
+                        c.sendEvent("turn");
+                    }
+                }
             }
         });
     }
 
     public void stop() {
         server.stop();
+    }
+
+
+    // Fonction appelée pour distribuer cartes et plateaux
+    public void distribuerJeu() {
+        for (SocketIOClient c : clients) {
+            System.out.println("[SERVEUR] - Envoi d'un plateau au client " + c.getRemoteAddress());
+            Plateau p = gestionnairePlateau.RandomPlateau();
+            c.sendEvent("envoiPlateau", p.getClass().getName());
+
+            System.out.println("[SERVEUR] - Envoi d'une main au client " + c.getRemoteAddress());
+            Main main = new Main(deck.genererMain());
+            ArrayList<String> typesCartes = new ArrayList<>();
+            for (int i = 0; i < main.getCartes().size(); i++) {
+                typesCartes.add(main.getCartes().get(i).getClass().getName());
+            }
+            c.sendEvent("envoiMain", typesCartes);
+            System.out.println("[SERVEUR] - Nombre de cartes restantes dans le deck : " + deck.getDeck().size());
+        }
     }
 }

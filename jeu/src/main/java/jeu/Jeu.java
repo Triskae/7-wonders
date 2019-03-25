@@ -11,7 +11,6 @@ public class Jeu {
 
     public static void main(String[] args) throws Exception {
         genererClients(3);
-        Serveur serveur = new Serveur(clients);
     }
 
     private static void genererClients(int nbClients) throws InterruptedException {

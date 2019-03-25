@@ -37,6 +37,7 @@ public class IA {
 
         if(bestScore!=-1){ //s'il y a eu une carte du type en parametre et avec le plus de points
             c.playCard(c.getMain().getCartes().get(indice));
+            c.getMain().getCartes().remove(indice);
         }else{ //joue une carte aléatoire sinon
             jouerCarteAlea();
         }

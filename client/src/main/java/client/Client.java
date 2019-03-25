@@ -249,10 +249,12 @@ public class Client extends Thread {
             for (int i = 0; i < main.getCartes().size(); i++) {
                 int finalI = i;
                 actionListDialogBuilder.addAction(main.getCartes().get(i).getNom(), () -> {
-                    connexion.emit("carteJouee", getMain().getCartes().get(finalI).getClass().getName());
+//                    connexion.emit("carteJouee", getMain().getCartes().get(finalI).getClass().getName());
+
                 });
             }
             actionListDialogBuilder.build().showDialog(textGUI);
+            screen.close();
 
         } catch (IOException e) {
             e.printStackTrace();

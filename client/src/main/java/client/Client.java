@@ -1,13 +1,12 @@
 package client;
 
 import client.reseau.Connexion;
-import com.googlecode.lanterna.screen.Screen;
-import com.googlecode.lanterna.terminal.Terminal;
 import commun.Main;
 import commun.cartes.Carte;
 import client.IA.IA;
 import commun.Ressource;
 import commun.plateaux.Plateau;
+import org.json.JSONArray;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -25,25 +24,17 @@ public class Client extends Thread {
     private Main main;
     private int pointMilitaire;
     private boolean isIA=false;
-    private Terminal terminal;
-    private Screen screen;
     private IA instanceIA;
+    private boolean aJoue;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
-
-    private Client(String nom, Main mainJoueur) {
-        this.nom = nom;
-        this.nombrePiece = 3;
-        this.nombrePoint = 0;
-        this.main = mainJoueur;
-    }
 
     public Client(String nom, boolean isIA) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
         if (isIA) {
-            instanceIA = new IA(this, "");
+            instanceIA = new IA(this, "bleu");
         }
         this.ressources = new Ressource();
     }
@@ -52,36 +43,16 @@ public class Client extends Thread {
      * un ensemble de getter et setter
      **/
 
-    public int getPointMilitaire() {
+    private int getPointMilitaire() {
         return pointMilitaire;
-    }
-
-    public void setPointMilitaire(int pointMilitaire) {
-        this.pointMilitaire = pointMilitaire;
     }
 
     public String getNom() {
         return nom;
     }
 
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-
-    public int getNombrePiece() {
-        return nombrePiece;
-    }
-
-    public void setNombrePiece(int nombrePiece) {
-        this.nombrePiece = nombrePiece;
-    }
-
-    public int getNombrePoint() {
+    private int getNombrePoint() {
         return nombrePoint;
-    }
-
-    public void setNombrePoint(int nombrePoint) {
-        this.nombrePoint = nombrePoint;
     }
 
     public Plateau getPlateaux() {
@@ -92,7 +63,7 @@ public class Client extends Thread {
         this.plateaux = plateaux;
     }
 
-    public Ressource getRessources() { return ressources; }
+    private Ressource getRessources() { return ressources; }
 
     public Main getMain() {
         return this.main;
@@ -106,22 +77,18 @@ public class Client extends Thread {
         this.connexion = connexion;
     }
 
-    void addPiece(int nombrePiece) {
-        this.nombrePiece += nombrePiece;
-    }
-
-    void addPoint(int nombrePoint) {
+    private void addPoint(int nombrePoint) {
         this.nombrePoint += nombrePoint;
     }
 
-    void defausser(Carte carte) {
-        removeCard(carte);
-        nombrePiece += 3;
+    public void setAJoue(boolean aJoue) {
+        this.aJoue = aJoue;
     }
 
-    public boolean isIA() {
-        return isIA;
-    }
+    //    void defausser(Carte carte) {
+//        removeCard(carte);
+//        nombrePiece += 3;
+//    }
 
     public void setIA(boolean IA) {
         isIA = IA;
@@ -131,73 +98,87 @@ public class Client extends Thread {
         getMain().getCartes().remove(carte);
     }
 
-    public void addPointMilitaire(int point) {
+    private void addPointMilitaire(int point) {
         this.pointMilitaire += point;
     }
 
     public void tour() {
-        if (isIA) {
-            //appel méthode de jeu classe IA
-            instanceIA.tour();
+        if (!aJoue) {
+            if (isIA) {
+                //appel méthode de jeu classe IA
+                instanceIA.tour();
+            } else {
+                choixUtilisateur();
+            }
         } else {
-            choixUtilisateur();
+            System.out.println("[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour");
         }
     }
+
     // Joue une carte au Hasard
-    void playCardrand(){
+    void playCardRand(){
         double rand = (Math.random() * (main.getCartes().size()));
         main.getCartes().remove((int) rand);
     }
 
-    public void playCard(Carte carte){
-        connexion.emit("carteJouee", carte.getClass().getName());
+    public void playCard(Carte carte) {
+        JSONArray payload = new JSONArray();
+        payload.put(getNom());
+        payload.put(carte.getClass().getName());
+        connexion.emit("carteJouee", payload);
         removeCard(carte);
     }
 
-    public void choixUtilisateur() {
-        Scanner sc = new Scanner(System.in);
-        System.out.println("Veuillez saisir le numéro de la carte que vous voulez jouer :");
+    private void choixUtilisateur() {
+        if (!aJoue) {
+            Scanner sc = new Scanner(System.in);
+            System.out.println("[CLIENT " + getNom() + "] - Vous pouvez jouer une carte");
+            System.out.println("[CLIENT " + getNom() + "] - Veuillez saisir le numéro de la carte que vous voulez jouer :");
 
-        for (int i = 0; i < getMain().getCartes().size(); i++) {
-            System.out.println(i + " - " + getMain().getCartes().get(i).getNom());
+            for (int i = 0; i < getMain().getCartes().size(); i++) {
+                System.out.println(i + " - " + getMain().getCartes().get(i).getNom());
+            }
+
+            int nbCartes = Integer.parseInt(sc.nextLine());
+
+            switch (getMain().getCartes().get(nbCartes).getType()){
+                case 1 :
+                    addPoint(getMain().getCartes().get(nbCartes).getPoint());
+                    System.out.println("[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points");
+                    break;
+                case 2 :
+                    addPointMilitaire(getPointMilitaire() + getMain().getCartes().get(nbCartes).getPoint());
+                    System.out.println("[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires");
+            }
+            playCard(getMain().getCartes().get(nbCartes));
+            setAJoue(true);
         }
-
-        int nbCartes = Integer.parseInt(sc.nextLine());
-
-
-        switch (getMain().getCartes().get(nbCartes).getType()){
-            case 1 :
-                addPoint(getMain().getCartes().get(nbCartes).getPoint());
-                break;
-            case 2 :
-                setPointMilitaire(getPointMilitaire() + getMain().getCartes().get(nbCartes).getPoint());
-        }
-        playCard(getMain().getCartes().get(nbCartes));
     }
 
     public void addRessourceDepart(Plateau p) throws Exception {
-        System.out.println(this.getNom());
-
-        if(p.getNom().equals("La Grande Pyramide de Gizeh"))
-            this.getRessources().ajouterRessource("Pierre", 1);
-
-        else if(p.getNom().equals("La Statue de Zeus à Olympie"))
-            this.getRessources().ajouterRessource("Bois", 1);
-
-        else if(p.getNom().equals("Le Colosse de Rhodes"))
-            this.getRessources().ajouterRessource("Minerai", 1);
-
-        else if(p.getNom().equals("Le Mausolée d'Halicarnasse"))
-            this.getRessources().ajouterRessource("Tissu", 1);
-
-        else if(p.getNom().equals("Le Phare d'Alexandrie"))
-            this.getRessources().ajouterRessource("Verre", 1);
-
-        else if(p.getNom().equals("Les Jardins Suspendus de Babylone"))
-            this.getRessources().ajouterRessource("Argile", 1);
-
-        else if(p.getNom().equals("Le Temple d'Arthemis à Ephese"))
-            this.getRessources().ajouterRessource("Papyrus", 1);
+        switch (p.getNom()) {
+            case "La Grande Pyramide de Gizeh":
+                this.getRessources().ajouterRessource("Pierre", 1);
+                break;
+            case "La Statue de Zeus à Olympie":
+                this.getRessources().ajouterRessource("Bois", 1);
+                break;
+            case "Le Colosse de Rhodes":
+                this.getRessources().ajouterRessource("Minerai", 1);
+                break;
+            case "Le Mausolée d'Halicarnasse":
+                this.getRessources().ajouterRessource("Tissu", 1);
+                break;
+            case "Le Phare d'Alexandrie":
+                this.getRessources().ajouterRessource("Verre", 1);
+                break;
+            case "Les Jardins Suspendus de Babylone":
+                this.getRessources().ajouterRessource("Argile", 1);
+                break;
+            case "Le Temple d'Arthemis à Ephese":
+                this.getRessources().ajouterRessource("Papyrus", 1);
+                break;
+        }
     }
 
     public String toString() {

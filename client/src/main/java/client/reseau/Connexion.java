@@ -87,6 +87,14 @@ public class Connexion {
                     }
                 }
             });
+
+            connexion.on("finTour", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    client.setAJoue(false);
+                    client.tour();
+                }
+            });
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
@@ -95,6 +103,10 @@ public class Connexion {
     public void seConnecter() {
         // on se connecte
         connexion.connect();
+    }
+
+    public Socket getSocket() {
+        return connexion;
     }
 
     public void emit(String str, Object... payload) {

@@ -25,7 +25,7 @@ public class Main {
         StringBuilder str = new StringBuilder();
         int i = 1;
         for (Carte c : cartes) {
-            str.append(i).append(") ").append(c).append("   ");
+            str.append(i).append(") ").append(c).append("\n");
             i++;
         }
         return str.toString();

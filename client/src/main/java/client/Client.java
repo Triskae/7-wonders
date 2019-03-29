@@ -15,6 +15,11 @@ import java.util.Scanner;
 
 public class Client extends Thread {
 
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String ANSI_CYAN = "\u001B[36m";
+    private static final String ANSI_PURPLE = "\u001B[35m";
+
     private Connexion connexion;
     private int nombrePiece;
     private int nombrePoint;
@@ -106,11 +111,7 @@ public class Client extends Thread {
             if (isIA()) instanceIA.tour();
             else choixUtilisateur();
         } else {
-            } else {
-                choixUtilisateur();
-            }
-        } else {
-            System.out.println("[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour");
+            if (!isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour" + ANSI_RESET);
         }
     }
 
@@ -132,11 +133,13 @@ public class Client extends Thread {
     private void choixUtilisateur() {
         if (!aJoue) {
             Scanner sc = new Scanner(System.in);
-            System.out.println("[CLIENT " + getNom() + "] - Vous pouvez jouer une carte");
-            System.out.println("[CLIENT " + getNom() + "] - Veuillez saisir le numéro de la carte que vous voulez jouer :");
+            if (!isIA()) {
+                System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous pouvez jouer une carte" + ANSI_RESET);
+                System.out.println(ANSI_CYAN + "[CLIENT " + getNom() + "] - Veuillez saisir le numéro de la carte que vous voulez jouer :" + ANSI_RESET);
+            }
 
             for (int i = 0; i < getMain().getCartes().size(); i++) {
-                System.out.println(i + " - " + getMain().getCartes().get(i).getNom());
+                System.out.println(ANSI_CYAN + i + " - " + getMain().getCartes().get(i).getNom() + ANSI_RESET);
             }
 
             int nbCartes = Integer.parseInt(sc.nextLine());
@@ -144,13 +147,15 @@ public class Client extends Thread {
             switch (getMain().getCartes().get(nbCartes).getType()){
                 case 1 :
                     addPoint(getMain().getCartes().get(nbCartes).getPoint());
-                    System.out.println("[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points");
+                    if (isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
+                    else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
                     break;
                 case 2 :
                     addPointMilitaire(getPointMilitaire() + getMain().getCartes().get(nbCartes).getPoint());
-                    System.out.println("[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires");
+                    if (isIA()) System.out.println(ANSI_PURPLE +"[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires" + ANSI_RESET);
+                    else System.out.println(ANSI_YELLOW +"[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires" + ANSI_RESET);
             }
-            playCard(getMain().getCartes().get(nbCartes));
+            playCard(getMain().getCartes().get(nbCartes), getMain().getCartes().indexOf(getMain().getCartes().get(nbCartes)));
             setAJoue(true);
         }
     }
@@ -200,7 +205,8 @@ public class Client extends Thread {
     }
 
     public void onConnexion() {
-        System.out.println("[CLIENT " + getNom() + "] - Connexion réussie");
+        if (isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + getNom() + "] - Connexion réussie" + ANSI_RESET);
+        else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Connexion réussie" + ANSI_RESET);
         connexion.emit("envoiIdentification", getNom());
     }
 
@@ -223,7 +229,8 @@ public class Client extends Thread {
             e.printStackTrace();
         }
 
-        System.out.println("[CLIENT " + getNom() + "] - Initialisation");
+        if (isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + getNom() + "] - Initialisation" + ANSI_RESET);
+        else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Initialisation" + ANSI_RESET);
 
         int port = 60001;
 

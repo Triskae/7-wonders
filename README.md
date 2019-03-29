@@ -29,4 +29,10 @@
  ## Pour jouer :
  
  - La liste des cartes de la main est affichée. Chaque carte porte un numéro également indiqué. Pour jouer la carte voulue, simplement entrer son numéro dans le terminal.
+ 
+ ## Les couleurs dans le terminal :
+ - Les messages du serveur sont affichés en blanc,
+ - Les messages concernant les joueurs IA sont affichés en violet,
+ - Les messages concernant le joueur sont affichés en jaune,
+ - Les messages demandant au joueur d'effectuer une action spécifique sont affichés en cyan
 

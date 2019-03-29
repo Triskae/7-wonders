@@ -16,6 +16,11 @@ import java.util.Arrays;
 
 public class Connexion {
 
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_YELLOW = "\u001B[33m";
+    private static final String ANSI_PURPLE = "\u001B[35m";
+    private static final String ANSI_BLUE = "\u001B[34m";
+
     private final Client client;
     private Socket connexion;
 
@@ -84,7 +89,8 @@ public class Connexion {
                     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-                    System.out.println("[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")");
+                    if (client.isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
+                    else System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
                     try {
                         client.addRessourceDepart(client.getPlateaux());
                     } catch (Exception e) {

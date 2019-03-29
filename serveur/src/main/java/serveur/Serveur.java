@@ -15,7 +15,6 @@ import commun.plateaux.Plateau;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Serveur {
@@ -31,14 +30,14 @@ public class Serveur {
     private int port;
     private int nbJoueursJoues = 0;
     private int nbJoueurPrets = 0;
-    private int numeroTour = 0;
+    private int numeroTour = 1;
+    private int numeroAge = 1;
 
     public static void main(String[] args) throws Exception {
         Serveur serveur = new Serveur();
     }
 
-    public Serveur() throws Exception {
-        //int nbJoueurs = listeClients.size();
+    private Serveur() throws Exception {
         int port = 60001;
         String ipAdress = "127.0.0.1";
         Configuration config = new Configuration();
@@ -53,7 +52,6 @@ public class Serveur {
 
         System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + port);
         System.out.println("[SERVEUR] - Création d'un deck pour " + nbJoueurs + " joueurs");
-
 
         deck = new Deck(nbJoueurs);
         gestionnairePlateau = new GestionnairePlateau();
@@ -104,6 +102,7 @@ public class Serveur {
             @Override public void onDisconnect(SocketIOClient socketIOClient) {
                 System.out.println("[SERVEUR] - Déconnexion de " + socketIOClient.getRemoteAddress());
                 clients.remove(socketIOClient);
+                clientsHashMap.remove(socketIOClient);
             }
         });
 
@@ -112,22 +111,33 @@ public class Serveur {
             public void onData(SocketIOClient socketIOClient, ArrayList arrayList, AckRequest ackRequest) throws Exception {
                 String nomJoueur = (String) arrayList.get(0);
                 String nomCarteJouee = (String) arrayList.get(1);
+                int indiceCarte = (int) arrayList.get(2);
 
                 Carte carteTemp;
                 Object objCarte = Class.forName(nomCarteJouee).newInstance();
                 carteTemp = (Carte) objCarte;
                 System.out.println("[SERVEUR] - Carte jouée (" + carteTemp + ") par " + nomJoueur);
+
+                clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
+
                 nbJoueursJoues++;
 
                 if (nbJoueursJoues == clients.size()) {
-                    System.out.println("[SERVEUR] - Tous les joueurs ont joués, début du tour suivant");
+                    System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour suivant");
                     numeroTour++;
                     nbJoueursJoues = 0;
-                    for (SocketIOClient c : clients) {
+                    if (numeroAge == 1) clientsHashMap = permuter(true);
+
+                    for (SocketIOClient c : clientsHashMap.keySet()) {
+                        ArrayList<String> typesCartes = new ArrayList<>();
+                        for (int i = 0; i < clientsHashMap.get(c).getCartes().size(); i++) {
+                            typesCartes.add(clientsHashMap.get(c).getCartes().get(i).getClass().getName());
+                        }
+                        c.sendEvent("envoiMain", typesCartes);
                         c.sendEvent("finTour");
                     }
                 } else {
-                    System.out.println("[SERVEUR] - TOUR " + numeroTour + " : " + nbJoueursJoues + " sur " + nbJoueurs + " ont joués, le tour suivant commencera quand tout le monde aura joué");
+                    System.out.println("[SERVEUR] - AGE " + numeroAge + " - TOUR " + numeroTour + " : " + nbJoueursJoues + " sur " + nbJoueurs + " ont joués, le tour suivant commencera quand tout le monde aura joué");
                 }
             }
         });
@@ -167,28 +177,42 @@ public class Serveur {
             System.out.println("[SERVEUR] - Nombre de cartes restantes dans le deck : " + deck.getDeck().size());
             clientsHashMap.put(c, main);
         }
-        permuter(true);
-        System.out.println(clientsHashMap);
     }
 
     /**
      * Permet de permutter les mains des joueurs
      * @param sens true signifie que les cartes vont être permutées vers la gauche et false vers la droite
      */
-    private void permuter(boolean sens) {
-        System.out.println("================== AVANT PERMUTATION ==================");
-        System.out.println(clientsHashMap);
-        System.out.println("=======================================================");
-        List<Map.Entry<SocketIOClient, Main>> entrees = new ArrayList<>(clientsHashMap.entrySet());
-            if (sens) { // vers la gauche
-            for (int i = 0; i < clientsHashMap.entrySet().size(); i++) {
-                System.out.println(entrees);
-            }
-        } else { // vers la droite
+    private HashMap<SocketIOClient, Main> permuter(boolean sens) {
+        HashMap<SocketIOClient, Main> nouvelleClientsHashMap = new HashMap<>();
+        ArrayList<SocketIOClient> clientsTemp = new ArrayList<>();
+        ArrayList<Main> mainsTemp = new ArrayList<>();
 
+        for (Map.Entry<SocketIOClient, Main> entree : clientsHashMap.entrySet()) {
+            clientsTemp.add(entree.getKey());
+            mainsTemp.add(entree.getValue());
         }
-        System.out.println("================== APRES PERMUTATION ==================");
-        System.out.println(clientsHashMap);
-        System.out.println("=======================================================");
+
+        if (sens) {
+            // permutation vers la gauche
+            Main premiereMainTemp = mainsTemp.get(0);
+            for (int i = 0; i < mainsTemp.size() - 1; i++) {
+                mainsTemp.set(i, mainsTemp.get(i + 1));
+            }
+            mainsTemp.set(mainsTemp.size() - 1, premiereMainTemp);
+        } else {
+            // permutation vers la droite
+            Main derniereMainTemp = mainsTemp.get(mainsTemp.size() - 1);
+            for (int i = mainsTemp.size() - 1; i > 0; i--) {
+                mainsTemp.set(i, mainsTemp.get(i - 1));
+            }
+            mainsTemp.set(0, derniereMainTemp);
+        }
+
+        for (int i = 0; i < clientsHashMap.size(); i++) {
+            nouvelleClientsHashMap.put(clientsTemp.get(i), mainsTemp.get(i));
+        }
+
+        return nouvelleClientsHashMap;
     }
 }

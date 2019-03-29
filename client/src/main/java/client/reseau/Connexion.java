@@ -12,6 +12,7 @@ import org.json.JSONException;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Connexion {
 
@@ -46,7 +47,11 @@ public class Connexion {
             connexion.on("turn", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    client.tour();
+                    try {
+                        client.tour();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -92,7 +97,11 @@ public class Connexion {
                 @Override
                 public void call(Object... objects) {
                     client.setAJoue(false);
-                    client.tour();
+                    try {
+                        client.tour();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         } catch (URISyntaxException e) {

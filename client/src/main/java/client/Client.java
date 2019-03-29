@@ -85,13 +85,12 @@ public class Client extends Thread {
         this.aJoue = aJoue;
     }
 
-    //    void defausser(Carte carte) {
-//        removeCard(carte);
-//        nombrePiece += 3;
-//    }
-
     public void setIA(boolean IA) {
         isIA = IA;
+    }
+
+    public boolean isIA() {
+        return isIA;
     }
 
     private void removeCard(Carte carte){
@@ -102,11 +101,11 @@ public class Client extends Thread {
         this.pointMilitaire += point;
     }
 
-    public void tour() {
+    public void tour() throws InterruptedException {
         if (!aJoue) {
-            if (isIA) {
-                //appel méthode de jeu classe IA
-                instanceIA.tour();
+            if (isIA()) instanceIA.tour();
+            else choixUtilisateur();
+        } else {
             } else {
                 choixUtilisateur();
             }
@@ -121,10 +120,11 @@ public class Client extends Thread {
         main.getCartes().remove((int) rand);
     }
 
-    public void playCard(Carte carte) {
+    public void playCard(Carte carte, int indiceCarte) {
         JSONArray payload = new JSONArray();
         payload.put(getNom());
         payload.put(carte.getClass().getName());
+        payload.put(indiceCarte);
         connexion.emit("carteJouee", payload);
         removeCard(carte);
     }
@@ -211,36 +211,9 @@ public class Client extends Thread {
     }
 
     public void readyToPlay() {
-        // Ici peux jouer
-        System.out.println("[CLIENT " + getNom() + "] - Main reçue");
-        System.out.println("[CLIENT " + getNom() + "] - " + getMain());
+        if (!isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Nouvelle main reçue" + ANSI_RESET);
         connexion.emit("playerReady");
     }
-
-    /*public void jouerMain() {
-        try {
-            terminal = new DefaultTerminalFactory().createTerminal();
-            screen = new TerminalScreen(terminal);
-            screen.startScreen();
-            final WindowBasedTextGUI textGUI = new MultiWindowTextGUI(screen);
-            ActionListDialogBuilder actionListDialogBuilder = new ActionListDialogBuilder();
-            actionListDialogBuilder.setTitle("Choisi ta carte");
-
-
-            for (int i = 0; i < main.getCartes().size(); i++) {
-                int finalI = i;
-                actionListDialogBuilder.addAction(main.getCartes().get(i).getNom(), () -> {
-//                    connexion.emit("carteJouee", getMain().getCartes().get(finalI).getClass().getName());
-
-                });
-            }
-            actionListDialogBuilder.build().showDialog(textGUI);
-            screen.close();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
 
     @Override
     public void run() {

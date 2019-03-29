@@ -20,7 +20,9 @@ public class IA {
     // Stratégie nulle joue juste une carte au hasard
     private void jouerCarteAlea() {
         if (!c.getMain().getCartes().isEmpty()) {
-            c.playCard(randomCarte(c.getMain().getCartes()));
+            Carte carteJouee = randomCarte(c.getMain().getCartes());
+            c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
+            c.setAJoue(true);
         }
     }
 
@@ -40,13 +42,16 @@ public class IA {
         }
 
         if(bestScore!=-1) { //s'il y a eu une carte du type en parametre et avec le plus de points
-            c.playCard(c.getMain().getCartes().get(indice));
+            Carte carteJouee = c.getMain().getCartes().get(indice);
+            c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
+            c.setAJoue(true);
         } else { //joue une carte aléatoire sinon
             jouerCarteAlea();
         }
     }
 
-    public void tour() {
+    public void tour() throws InterruptedException {
+        Thread.sleep(1000);
         switch (strat){
             case "random":
                 jouerCarteAlea();
@@ -55,7 +60,6 @@ public class IA {
             case "rouge" :
                 jouerCarteParCouleur(2);
         }
-        c.setAJoue(true);
     }
 
     private static Carte randomCarte(ArrayList<Carte> cartes) {

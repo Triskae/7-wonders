@@ -31,38 +31,75 @@ public class Deck {
 
 	public static void createCarteEnJeu(int nbJoueur) throws Exception {
 
-		switch (nbJoueur) {
-			case 3: {
-			    // Bleu
-				carteEnJeu.add(new Bains());
-				carteEnJeu.add(new Autel());
-				carteEnJeu.add(new Theatre());
-				carteEnJeu.add(new PreteurSurGages());
-                // Rouge
-                carteEnJeu.add(new Caserne());
-                carteEnJeu.add(new TourDeGarde());
-                carteEnJeu.add(new Palissade());
-                // Marron
-                carteEnJeu.add(new Chantier());
-                carteEnJeu.add(new Cavite());
-                carteEnJeu.add(new BassinArgileux());
-                carteEnJeu.add(new Filon());
-                carteEnJeu.add(new Friche());
-                carteEnJeu.add(new Excavation());
-                carteEnJeu.add(new FosseArgileuse());
-                carteEnJeu.add(new ExploitationForestiere());
-                carteEnJeu.add(new Gisement());
-                carteEnJeu.add(new Mine());
-                // Blanche
-                carteEnJeu.add(new MetierATisser());
-                carteEnJeu.add(new Verrerie());
-                carteEnJeu.add(new Presse());
-				break;
-			}
-			default: {
-				throw new Exception("Pas encore crée");
-			}
-		}
+        if(nbJoueur>=3){
+            // Bleu
+            carteEnJeu.add(new Bains());
+            carteEnJeu.add(new Autel());
+            carteEnJeu.add(new Theatre());
+            // Rouge
+            carteEnJeu.add(new Caserne());
+            carteEnJeu.add(new TourDeGarde());
+            carteEnJeu.add(new Palissade());
+            // Marron
+            carteEnJeu.add(new Chantier());
+            carteEnJeu.add(new Cavite());
+            carteEnJeu.add(new BassinArgileux());
+            carteEnJeu.add(new Filon());
+            carteEnJeu.add(new FosseArgileuse());
+            carteEnJeu.add(new ExploitationForestiere());
+            // Blanche
+            carteEnJeu.add(new MetierATisser());
+            carteEnJeu.add(new Verrerie());
+            carteEnJeu.add(new Presse());
+        }
+
+        if(nbJoueur>=4) {
+            // Bleu
+            carteEnJeu.add(new PreteurSurGages());
+            // Marron
+            carteEnJeu.add(new Chantier());
+            carteEnJeu.add(new Filon());
+            carteEnJeu.add(new Excavation());
+            // Rouge
+            carteEnJeu.add(new TourDeGarde());
+        }
+
+        if(nbJoueur>=5) {
+            // Marron
+            carteEnJeu.add(new Cavite());
+            carteEnJeu.add(new BassinArgileux());
+            carteEnJeu.add(new Gisement());
+            // Bleu
+            carteEnJeu.add(new Autel());
+            // Rouge
+            carteEnJeu.add(new Caserne());
+        }
+
+        if(nbJoueur>=6) {
+            // Marron
+            carteEnJeu.add(new Friche());
+            carteEnJeu.add(new Mine());
+            // Blanche
+            carteEnJeu.add(new MetierATisser());
+            carteEnJeu.add(new Verrerie());
+            carteEnJeu.add(new Presse());
+            // Bleu
+            carteEnJeu.add(new Theatre());
+        }
+
+        if(nbJoueur==7) {
+            // Bleu
+            carteEnJeu.add(new PreteurSurGages());
+            carteEnJeu.add(new Bains());
+            // Rouge
+            carteEnJeu.add(new Palissade());
+        }
+        if(nbJoueur>7){
+            throw new Exception("Trop de joueur");
+        }
+
+
+
 	}
 
     public ArrayList<Carte> genererMain() {

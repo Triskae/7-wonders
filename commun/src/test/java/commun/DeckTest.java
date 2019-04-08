@@ -16,12 +16,18 @@ import static org.junit.jupiter.api.Assertions.*;
             assertEquals(21, d.getDeck().size());
         }
 
+        @Test
+        public void testCreationDeckPourSeptJoueur() throws Exception {
+            Deck d = new Deck(7);
+            assertEquals(49, d.getDeck().size());
+        }
+
 
         //Test avec 5 joueurs
 
         @Test()
         public void testCreationDeckPourXJoueur() throws Exception {
-            Assertions.assertThrows(Exception.class, () -> new Deck(5));
+            Assertions.assertThrows(Exception.class, () -> new Deck(8));
 
         }
 

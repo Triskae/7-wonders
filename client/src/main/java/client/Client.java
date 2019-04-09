@@ -130,18 +130,18 @@ public class Client extends Thread {
     }
 
     private void choixUtilisateur() {
-        if (!aJoue) {
+        if (!aJoue && !isIA()) {
             Scanner sc = new Scanner(System.in);
-            if (!isIA()) {
-                System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous pouvez jouer une carte" + ANSI_RESET);
-                System.out.println(ANSI_CYAN + "[CLIENT " + getNom() + "] - Veuillez saisir le numéro de la carte que vous voulez jouer :" + ANSI_RESET);
-            }
-
+            int nbCartes = -1;
+            System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous pouvez jouer une carte" + ANSI_RESET);
             for (int i = 0; i < getMain().getCartes().size(); i++) {
-                System.out.println(ANSI_CYAN + i + " - " + getMain().getCartes().get(i).getNom() + ANSI_RESET);
+                System.out.println(ANSI_YELLOW + i + " - " + getMain().getCartes().get(i).getNom() + ANSI_YELLOW);
             }
 
-            int nbCartes = Integer.parseInt(sc.nextLine());
+            while (nbCartes < 0 || nbCartes > getMain().getCartes().size() - 1) {
+                System.out.println(ANSI_CYAN + "[CLIENT " + getNom() + "] - Veuillez saisir le numéro de la carte que vous voulez jouer :" + ANSI_RESET);
+                nbCartes = Integer.parseInt(sc.nextLine());
+            }
 
             switch (getMain().getCartes().get(nbCartes).getType()){
                 case 1 :

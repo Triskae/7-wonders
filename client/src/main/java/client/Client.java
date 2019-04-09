@@ -49,7 +49,7 @@ public class Client extends Thread {
      * un ensemble de getter et setter
      **/
 
-    private int getPointMilitaire() {
+    public int getPointMilitaire() {
         return pointMilitaire;
     }
 
@@ -94,6 +94,8 @@ public class Client extends Thread {
     public int getNombrePiece() {
         return nombrePiece;
     }
+
+
 
     public void setNombrePiece(int nombrePiece) {
         this.nombrePiece = nombrePiece;

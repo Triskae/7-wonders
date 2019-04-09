@@ -93,6 +93,13 @@ public class Connexion {
                 }
             });
 
+            connexion.on("demanderPointsMilitaire", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    connexion.emit("envoyerPointsMilitaire", client.getPointMilitaire());
+                }
+            });
+
             connexion.on("confirmationCarteDefaussee", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {

@@ -106,38 +106,32 @@ public class Serveur {
             }
         });
 
-        server.addEventListener("carteJouee", ArrayList.class, new DataListener<ArrayList>() {
+        server.addEventListener("jeu", ArrayList.class, new DataListener<ArrayList>() {
             @Override
             public void onData(SocketIOClient socketIOClient, ArrayList arrayList, AckRequest ackRequest) throws Exception {
                 String nomJoueur = (String) arrayList.get(0);
                 String nomCarteJouee = (String) arrayList.get(1);
                 int indiceCarte = (int) arrayList.get(2);
+                int typeInteraction = (int) arrayList.get(3);
 
                 Carte carteTemp;
                 Object objCarte = Class.forName(nomCarteJouee).newInstance();
                 carteTemp = (Carte) objCarte;
-                System.out.println("[SERVEUR] - Carte jouée (" + carteTemp + ") par " + nomJoueur);
 
-                clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
-
-                nbJoueursJoues++;
-
-                if (nbJoueursJoues == clients.size()) {
-                    System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour suivant");
-                    numeroTour++;
-                    nbJoueursJoues = 0;
-                    if (numeroAge == 1) clientsHashMap = permuter(true);
-
-                    for (SocketIOClient c : clientsHashMap.keySet()) {
-                        ArrayList<String> typesCartes = new ArrayList<>();
-                        for (int i = 0; i < clientsHashMap.get(c).getCartes().size(); i++) {
-                            typesCartes.add(clientsHashMap.get(c).getCartes().get(i).getClass().getName());
-                        }
-                        c.sendEvent("envoiMain", typesCartes);
-                        c.sendEvent("finTour");
-                    }
-                } else {
-                    System.out.println("[SERVEUR] - AGE " + numeroAge + " - TOUR " + numeroTour + " : " + nbJoueursJoues + " sur " + nbJoueurs + " ont joués, le tour suivant commencera quand tout le monde aura joué");
+                switch(typeInteraction) {
+                    case 1: // carte defaussée
+                        System.out.println("[SERVEUR] - Carte défaussée (" + carteTemp + ") par " + nomJoueur);
+                        clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
+                        nbJoueursJoues++;
+                        socketIOClient.sendEvent("confirmationCarteDefaussee");
+                        verifierFinTour();
+                        break;
+                    case 2: // carte jouée
+                        System.out.println("[SERVEUR] - Carte jouée (" + carteTemp + ") par " + nomJoueur);
+                        clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
+                        nbJoueursJoues++;
+                        verifierFinTour();
+                        break;
                 }
             }
         });
@@ -154,6 +148,26 @@ public class Serveur {
                 }
             }
         });
+    }
+
+    private void verifierFinTour() {
+        if (nbJoueursJoues == clients.size()) {
+            System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour suivant");
+            numeroTour++;
+            nbJoueursJoues = 0;
+            if (numeroAge == 1) clientsHashMap = permuter(true);
+
+            for (SocketIOClient c : clientsHashMap.keySet()) {
+                ArrayList<String> typesCartes = new ArrayList<>();
+                for (int i = 0; i < clientsHashMap.get(c).getCartes().size(); i++) {
+                    typesCartes.add(clientsHashMap.get(c).getCartes().get(i).getClass().getName());
+                }
+                c.sendEvent("envoiMain", typesCartes);
+                c.sendEvent("finTour");
+            }
+        } else {
+            System.out.println("[SERVEUR] - AGE " + numeroAge + " - TOUR " + numeroTour + " : " + nbJoueursJoues + " sur " + nbJoueurs + " ont joués, le tour suivant commencera quand tout le monde aura joué");
+        }
     }
 
     public void stop() {

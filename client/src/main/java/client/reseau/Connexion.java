@@ -93,6 +93,14 @@ public class Connexion {
                 }
             });
 
+            connexion.on("confirmationCarteDefaussee", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    client.setNombrePiece(client.getNombrePiece() + 3);
+                    System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
+                }
+            });
+
             connexion.on("finTour", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {

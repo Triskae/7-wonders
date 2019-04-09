@@ -12,14 +12,12 @@ import org.json.JSONException;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Connexion {
 
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_YELLOW = "\u001B[33m";
     private static final String ANSI_PURPLE = "\u001B[35m";
-    private static final String ANSI_BLUE = "\u001B[34m";
 
     private final Client client;
     private Socket connexion;
@@ -52,11 +50,7 @@ public class Connexion {
             connexion.on("turn", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    try {
-                        client.tour();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    client.tour();
                 }
             });
 
@@ -103,11 +97,7 @@ public class Connexion {
                 @Override
                 public void call(Object... objects) {
                     client.setAJoue(false);
-                    try {
-                        client.tour();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    client.tour();
                 }
             });
         } catch (URISyntaxException e) {

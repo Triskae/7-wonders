@@ -19,39 +19,42 @@ public class IA {
 
     // Stratégie nulle joue juste une carte au hasard
     private void jouerCarteAlea() {
-        if (!c.getMain().getCartes().isEmpty()) {
-            Carte carteJouee = randomCarte(c.getMain().getCartes());
-            c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
-            c.setAJoue(true);
+        if (!c.getAJoue()) {
+            if (!c.getMain().getCartes().isEmpty()) {
+                Carte carteJouee = randomCarte(c.getMain().getCartes());
+                c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
+                c.setAJoue(true);
+            }
         }
     }
 
     private void jouerCarteParCouleur(int type) {
-        int bestScore=-1;
-        int score;
-        int indice=-1;
+        if (!c.getAJoue()) {
+            int bestScore=-1;
+            int score;
+            int indice=-1;
 
-        for(int i=0;i<c.getMain().getCartes().size();i++) { //parcours la main
-            if(c.getMain().getCartes().get(i).getType()==type){ // Verifie si c'est une carte de type passer en paramètre
-                score=c.getMain().getCartes().get(i).getPoint();
-                if(bestScore<score){ //verifie qu'il y ai aucune carte avec plus de points dans la main
-                    bestScore=score;
-                    indice=i;
+            for(int i=0;i<c.getMain().getCartes().size();i++) { //parcours la main
+                if(c.getMain().getCartes().get(i).getType()==type){ // Verifie si c'est une carte de type passer en paramètre
+                    score=c.getMain().getCartes().get(i).getPoint();
+                    if(bestScore<score){ //verifie qu'il y ai aucune carte avec plus de points dans la main
+                        bestScore=score;
+                        indice=i;
+                    }
                 }
             }
-        }
 
-        if(bestScore!=-1) { //s'il y a eu une carte du type en parametre et avec le plus de points
-            Carte carteJouee = c.getMain().getCartes().get(indice);
-            c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
-            c.setAJoue(true);
-        } else { //joue une carte aléatoire sinon
-            jouerCarteAlea();
+            if(bestScore!=-1) { //s'il y a eu une carte du type en parametre et avec le plus de points
+                Carte carteJouee = c.getMain().getCartes().get(indice);
+                c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
+                c.setAJoue(true);
+            } else { //joue une carte aléatoire sinon
+                jouerCarteAlea();
+            }
         }
     }
 
-    public void tour() throws InterruptedException {
-        Thread.sleep(1000);
+    public void tour() {
         switch (strat){
             case "random":
                 jouerCarteAlea();

@@ -40,6 +40,7 @@ public class Client extends Thread {
         this.main = new Main(new ArrayList<>());
         if (isIA) {
             instanceIA = new IA(this, "bleu");
+            setIA(true);
         }
         this.ressources = new Ressource();
     }
@@ -86,6 +87,10 @@ public class Client extends Thread {
         this.nombrePoint += nombrePoint;
     }
 
+    public boolean getAJoue() {
+        return aJoue;
+    }
+
     public void setAJoue(boolean aJoue) {
         this.aJoue = aJoue;
     }
@@ -106,19 +111,13 @@ public class Client extends Thread {
         this.pointMilitaire += point;
     }
 
-    public void tour() throws InterruptedException {
+    public void tour() {
         if (!aJoue) {
             if (isIA()) instanceIA.tour();
             else choixUtilisateur();
         } else {
             if (!isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour" + ANSI_RESET);
         }
-    }
-
-    // Joue une carte au Hasard
-    void playCardRand(){
-        double rand = (Math.random() * (main.getCartes().size()));
-        main.getCartes().remove((int) rand);
     }
 
     public void playCard(Carte carte, int indiceCarte) {

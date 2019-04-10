@@ -97,13 +97,11 @@ public class Client extends Thread {
     }
 
     public int getNombrePiece() {
-        return nombrePiece;
+        return ressources.getRessource("Gold");
     }
 
-
-
     public void setNombrePiece(int nombrePiece) {
-        this.nombrePiece = nombrePiece;
+        ressources.setRessource("Gold", nombrePiece);
     }
 
     public void setAJoue(boolean aJoue) {

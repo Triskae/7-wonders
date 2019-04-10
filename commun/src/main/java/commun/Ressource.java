@@ -42,6 +42,10 @@ public class Ressource {
         return ressource.get(type);
     }
 
+    public void setRessource(String type, int valeur) {
+        ressource.put(type, valeur);
+    }
+
     @Override
     public String toString() {
         return "Ressource{" +

@@ -23,6 +23,7 @@ public class Ressource {
         ressource.put("Tissu",0);
         ressource.put("Verre",0);
         ressource.put("Papyrus",0);
+        ressource.put("Gold",0);
     }
 
     public void ajouterRessource(String nom, int nb) throws Exception {

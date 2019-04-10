@@ -5,8 +5,8 @@ import commun.effets.AjouterRessource;
 
 public class CarteRessource extends Carte{
 
-    public CarteRessource(String nom, Ressource... ressources) {
-        super(nom);
+    public CarteRessource(String nom, Ressource cout, Ressource... ressources) {
+        super(nom, cout);
         for (Ressource s : ressources) {
             AjouterRessource aR = new AjouterRessource("AjouterRessource", s);
         }
@@ -22,4 +22,6 @@ public class CarteRessource extends Carte{
     }
 
     public int getPoint(){return 0;}
+
+
 }

@@ -4,13 +4,12 @@ import commun.Symbole;
 
 public abstract class CarteScientifique extends Carte{
 
-    private Ressource cout;
+
     private Symbole symbole;
 
 
     public CarteScientifique(String nom, Ressource cout, Symbole symbole) {
-        super(nom);
-        this.cout = cout;
+        super(nom,cout);
         this.symbole = symbole;
     }
 
@@ -24,10 +23,13 @@ public abstract class CarteScientifique extends Carte{
         return 4;
     }
 
-    public Ressource getCout(){return cout;}
+    public Ressource getCout() {
+        return super.getCout();
+    }
 
     @Override
     public String toString() {
         return this.getNom() + " [Symbole = " + symbole + "] ";
     }
+
 }

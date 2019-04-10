@@ -21,7 +21,6 @@ public class Client extends Thread {
     private static final String ANSI_PURPLE = "\u001B[35m";
 
     private Connexion connexion;
-    private int nombrePiece;
     private int nombrePoint;
     private Plateau plateaux;
     private Ressource ressources;
@@ -31,6 +30,7 @@ public class Client extends Thread {
     private boolean isIA=false;
     private IA instanceIA;
     private boolean aJoue;
+
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
@@ -43,6 +43,11 @@ public class Client extends Thread {
             setIA(true);
         }
         this.ressources = new Ressource();
+        try {
+            this.ressources.ajouterRessource("Gold",3);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -231,7 +236,7 @@ public class Client extends Thread {
 
     public String toString() {
         return "Nom : /n" + this.nom +
-                "Nombre de pièces : /n" + this.nombrePiece +
+                "Nombre de pièces : /n" + this.ressources.getRessource("Gold") +
                 "Nombre de points : /n" + this.nombrePoint;
     }
 

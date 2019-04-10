@@ -4,6 +4,6 @@ import commun.Ressource;
 
 public class MetierATisser extends CarteRessource {
     public MetierATisser() throws Exception {
-        super("Metier A Tisser", new Ressource("Tissu",1));
+        super("Metier A Tisser",new Ressource(), new Ressource("Tissu",1));
     }
 }

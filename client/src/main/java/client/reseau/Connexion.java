@@ -1,6 +1,7 @@
 package client.reseau;
 
 import client.Client;
+import client.IA.IA;
 import commun.Main;
 import commun.cartes.Carte;
 import commun.plateaux.Plateau;
@@ -12,12 +13,14 @@ import org.json.JSONException;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public class Connexion {
 
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_YELLOW = "\u001B[33m";
     private static final String ANSI_PURPLE = "\u001B[35m";
+    private static final String ANSI_GREEN = "\u001B[32m";
 
     private final Client client;
     private Socket connexion;
@@ -50,7 +53,13 @@ public class Connexion {
             connexion.on("turn", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    client.tour();
+                    try {
+                        JSONArray numeros = (JSONArray) objects[0];
+                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
+                        client.tour(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 
@@ -87,7 +96,7 @@ public class Connexion {
                     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-                    if (client.isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
+                    if (client.isIA()) System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
                     else System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
                     try {
                         client.addRessourceDepart(client.getPlateaux());
@@ -108,7 +117,7 @@ public class Connexion {
                 @Override
                 public void call(Object... objects) {
                     client.setNombrePiece(client.getNombrePiece() + 3);
-                    System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
+                    if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
                 }
             });
 
@@ -116,7 +125,13 @@ public class Connexion {
                 @Override
                 public void call(Object... objects) {
                     client.setAJoue(false);
-                    client.tour();
+                    try {
+                        JSONArray numeros = (JSONArray) objects[0];
+                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
+                        client.tour(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
         } catch (URISyntaxException e) {

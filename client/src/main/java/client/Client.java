@@ -22,6 +22,8 @@ public class Client extends Thread {
     private static final String ANSI_YELLOW = "\u001B[33m";
     private static final String ANSI_CYAN = "\u001B[36m";
     private static final String ANSI_PURPLE = "\u001B[35m";
+    private static final String ANSI_RED = "\u001B[31m";
+    private static final String ANSI_GREEN = "\u001B[32m";
 
     private Connexion connexion;
     private int nombrePoint;
@@ -134,7 +136,7 @@ public class Client extends Thread {
             if (isIA()) instanceIA.tour();
             else choixUtilisateur(nouveauTour);
         } else {
-            if (!isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour" + ANSI_RESET);
+            if (!isIA()) System.out.println(ANSI_RED + "[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour" + ANSI_RESET);
         }
     }
 
@@ -307,7 +309,7 @@ public class Client extends Thread {
     }
 
     public void onConnexion() {
-        if (isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + getNom() + "] - Connexion réussie" + ANSI_RESET);
+        if (isIA()) System.out.println(ANSI_PURPLE + "[IA " + getNom() + "] - Connexion réussie" + ANSI_RESET);
         else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Connexion réussie" + ANSI_RESET);
         connexion.emit("envoiIdentification", getNom());
     }
@@ -336,7 +338,7 @@ public class Client extends Thread {
             e.printStackTrace();
         }
 
-        if (isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + getNom() + "] - Initialisation" + ANSI_RESET);
+        if (isIA()) System.out.println(ANSI_PURPLE + "[IA " + getNom() + "] - Initialisation" + ANSI_RESET);
         else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Initialisation" + ANSI_RESET);
 
         int port = 60001;

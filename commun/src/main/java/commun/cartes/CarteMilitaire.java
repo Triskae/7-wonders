@@ -6,6 +6,9 @@ import commun.effets.Effet;
 
 public abstract class CarteMilitaire extends Carte{
 
+    private static final String ANSI_RESET = "\u001B[0m";
+    private static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_BOLD = "\033[0;1m";
 
     private AjouterPointMilitaire am;
     private int nbAttaque;
@@ -31,7 +34,7 @@ public abstract class CarteMilitaire extends Carte{
 
     @Override
     public String toString() {
-        return this.getNom() + " [nombre de points d'attaque = " + nbAttaque + "] ";
+        return (ANSI_BOLD + ANSI_GREEN + this.getNom() + ANSI_RESET + ANSI_GREEN + " : coût -> " + ANSI_BOLD + ANSI_GREEN + this.getCout().getRessourcesSansValeursZero() + ANSI_RESET + ANSI_GREEN + " / effet -> " + ANSI_BOLD + ANSI_GREEN + "Ajoute " + nbAttaque + " points d'attaque" + ANSI_RESET).replace("{", "").replace("}", "");
     }
 
     public Ressource getCout() {

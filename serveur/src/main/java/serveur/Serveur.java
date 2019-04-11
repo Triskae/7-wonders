@@ -34,6 +34,8 @@ public class Serveur {
     private int numeroTour = 1;
     private int numeroAge = 1;
 
+    private static final String ANSI_RESET = "\u001B[0m";
+
     public static void main(String[] args) throws Exception {
         Serveur serveur = new Serveur();
     }
@@ -146,7 +148,10 @@ public class Serveur {
                 nbJoueurPrets++;
                 if (nbJoueurPrets == clients.size()) {
                     for (SocketIOClient c : clients) {
-                        c.sendEvent("turn");
+                        int[] payload = new int[2];
+                        payload[0] = numeroAge;
+                        payload[1] = numeroTour;
+                        c.sendEvent("turn", (Object) payload);
                     }
                 }
             }
@@ -190,8 +195,11 @@ public class Serveur {
                 for (int i = 0; i < clientsHashMap.get(c).getCartes().size(); i++) {
                     typesCartes.add(clientsHashMap.get(c).getCartes().get(i).getClass().getName());
                 }
+                int[] payload = new int[2];
+                payload[0] = numeroAge;
+                payload[1] = numeroTour;
                 c.sendEvent("envoiMain", typesCartes);
-                c.sendEvent("finTour");
+                c.sendEvent("finTour", (Object) payload);
             }
         } else {
             System.out.println("[SERVEUR] - AGE " + numeroAge + " - TOUR " + numeroTour + " : " + nbJoueursJoues + " sur " + nbJoueurs + " ont joués, le tour suivant commencera quand tout le monde aura joué");
@@ -201,18 +209,18 @@ public class Serveur {
     // Fonction appelée pour distribuer cartes et plateaux
     public void distribuerJeu() {
         for (SocketIOClient c : clients) {
-            System.out.println("[SERVEUR] - Envoi d'un plateau au client " + c.getRemoteAddress());
+            // System.out.println("[SERVEUR] - Envoi d'un plateau au client " + c.getRemoteAddress());
             Plateau p = gestionnairePlateau.RandomPlateau();
             c.sendEvent("envoiPlateau", p.getClass().getName());
 
-            System.out.println("[SERVEUR] - Envoi d'une main au client " + c.getRemoteAddress());
+            // System.out.println("[SERVEUR] - Envoi d'une main au client " + c.getRemoteAddress());
             Main main = new Main(deck.genererMain());
             ArrayList<String> typesCartes = new ArrayList<>();
             for (int i = 0; i < main.getCartes().size(); i++) {
                 typesCartes.add(main.getCartes().get(i).getClass().getName());
             }
             c.sendEvent("envoiMain", typesCartes);
-            System.out.println("[SERVEUR] - Nombre de cartes restantes dans le deck : " + deck.getDeck().size());
+            // System.out.println("[SERVEUR] - Nombre de cartes restantes dans le deck : " + deck.getDeck().size());
             clientsHashMap.put(c, main);
             clientsHashMapPointsMilitaires.put(c, 0);
         }

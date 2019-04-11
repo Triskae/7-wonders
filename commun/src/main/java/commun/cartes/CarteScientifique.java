@@ -1,6 +1,7 @@
 package commun.cartes;
 import commun.Ressource;
 import commun.Symbole;
+import commun.effets.Effet;
 
 public abstract class CarteScientifique extends Carte{
 
@@ -25,6 +26,11 @@ public abstract class CarteScientifique extends Carte{
 
     public Ressource getCout() {
         return super.getCout();
+    }
+
+    @Override
+    public Effet getEffet() {
+        return null;
     }
 
     @Override

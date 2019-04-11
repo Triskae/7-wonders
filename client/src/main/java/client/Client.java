@@ -1,16 +1,19 @@
 package client;
 
+import client.IA.IA;
 import client.reseau.Connexion;
 import commun.Main;
-import commun.cartes.Carte;
-import client.IA.IA;
 import commun.Ressource;
+import commun.cartes.Carte;
+import commun.effets.AjouterRessource;
 import commun.plateaux.Plateau;
 import org.json.JSONArray;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 
 public class Client extends Thread {
@@ -30,7 +33,6 @@ public class Client extends Thread {
     private boolean isIA=false;
     private IA instanceIA;
     private boolean aJoue;
-
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
@@ -53,7 +55,6 @@ public class Client extends Thread {
     /**
      * un ensemble de getter et setter
      **/
-
     public int getPointMilitaire() {
         return pointMilitaire;
     }
@@ -116,6 +117,10 @@ public class Client extends Thread {
         return isIA;
     }
 
+    public IA getInstanceIA() {
+        return instanceIA;
+    }
+
     private void removeCard(Carte carte){
         getMain().getCartes().remove(carte);
     }
@@ -124,16 +129,16 @@ public class Client extends Thread {
         this.pointMilitaire += point;
     }
 
-    public void tour() {
+    public void tour(boolean nouveauTour) throws Exception {
         if (!aJoue) {
             if (isIA()) instanceIA.tour();
-            else choixUtilisateur();
+            else choixUtilisateur(nouveauTour);
         } else {
             if (!isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour" + ANSI_RESET);
         }
     }
 
-    public void defausserCarte(Carte carte, int indiceCarte) {
+    private void defausserCarte(Carte carte, int indiceCarte) {
         JSONArray payload = new JSONArray();
         payload.put(getNom());
         payload.put(carte.getClass().getName());
@@ -143,21 +148,89 @@ public class Client extends Thread {
         removeCard(carte);
     }
 
-    public void playCard(Carte carte, int indiceCarte) {
-        JSONArray payload = new JSONArray();
-        payload.put(getNom());
-        payload.put(carte.getClass().getName());
-        payload.put(indiceCarte);
-        payload.put(2);
-        connexion.emit("jeu", payload);
-        removeCard(carte);
+    /**
+     * Permet de jouer une carte
+     * @param carte l'instance de la carte à jouer
+     * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
+     */
+    public void playCard(Carte carte, int indiceCarte) throws Exception {
+        int nbVerifications = nombreDeVerifications(carte);
+        int nbValidations = 0;
+        boolean jeuPossible = false;
+
+        if (nbVerifications == 0) {
+            jeuPossible = true;
+        } else {
+            for (Map.Entry<String, Integer> coutsCarte : carte.getCout().getRessources().entrySet()) {
+                if (coutsCarte.getValue() > 0 && ressources.getRessources().get(coutsCarte.getKey()) >= coutsCarte.getValue()) {
+                    nbValidations++;
+                }
+            }
+        }
+
+        if (nbValidations == nbVerifications) jeuPossible = true;
+
+        if (jeuPossible) {
+            JSONArray payload = new JSONArray();
+            payload.put(getNom());
+            payload.put(carte.getClass().getName());
+            payload.put(indiceCarte);
+            payload.put(2);
+            connexion.emit("jeu", payload);
+            plateaux.ajouterCarteJouee(carte);
+            if (carte.getEffet() instanceof AjouterRessource) {
+                for (Map.Entry<String, Integer> ressourcesCarte : ((AjouterRessource) carte.getEffet()).getRessources().entrySet()) {
+                    if (ressourcesCarte.getValue() != 0) ressources.ajouterRessource(ressourcesCarte.getKey(), ressourcesCarte.getValue());
+                }
+            }
+            removeCard(carte);
+            switch (carte.getType()){
+                case 1 :
+                    addPoint(carte.getPoint());
+                    if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
+                    break;
+                case 2 :
+                    addPointMilitaire(getPointMilitaire() + carte.getPoint());
+                    if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires" + ANSI_RESET);
+            }
+        } else {
+            if (isIA()) {
+                defausserCarte(carte, indiceCarte);
+            } else {
+                System.out.println(ANSI_RED +"[CLIENT " + getNom() + "] - Il vous manque des ressources pour jouer la carte sélectionnée" + ANSI_RESET);
+                tour(false);
+            }
+        }
     }
 
-    private void choixUtilisateur() {
+    /**
+     * Permet de vérifier combien de vérifications de ressources sont à effectuer pour une carte donnée (plus
+     * spécifiquement, le nombre de ressources différentes que coûte une carte)
+     * @param c la carte à vérifier
+     * @return le nombre de vérifications à effectuer
+     */
+    private int nombreDeVerifications(Carte c) {
+        int totalVerifications = 0;
+        for (Integer i : c.getCout().getRessources().values()) {
+            if (i != 0) totalVerifications++;
+        }
+        return totalVerifications;
+    }
+
+    private void choixUtilisateur(boolean nouveauTour) throws Exception {
         if (!aJoue && !isIA()) {
             Scanner sc = new Scanner(System.in);
             int reponseUtilisateur;
             int nbCartes = -1;
+
+            if (nouveauTour) {
+                System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Voici les ressources à votre disposition" + ANSI_RESET);
+                System.out.println((ANSI_GREEN + ressources.getRessources() + ANSI_RESET).replace("{", "").replace("}", ""));
+                System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Voici votre main" + ANSI_RESET);
+                for (int i = 0; i < getMain().getCartes().size(); i++) {
+                    System.out.println(ANSI_GREEN + i + " - " + getMain().getCartes().get(i) + ANSI_YELLOW);
+                }
+            }
 
             do {
                 reponseUtilisateur = Integer.parseInt(lireEntree(sc, ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous pouvez (choisir un numero) :\n1) Jouer une carte\n2) Defausser une carte" + ANSI_RESET));
@@ -165,26 +238,9 @@ public class Client extends Thread {
 
             switch(reponseUtilisateur) {
                 case 1:
-                    System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Voici votre main" + ANSI_RESET);
-                    for (int i = 0; i < getMain().getCartes().size(); i++) {
-                        System.out.println(ANSI_YELLOW + i + " - " + getMain().getCartes().get(i).getNom() + ANSI_YELLOW);
-                    }
-
                     while (nbCartes < 0 || nbCartes > getMain().getCartes().size() - 1) {
                         System.out.println(ANSI_CYAN + "[CLIENT " + getNom() + "] - Veuillez saisir le numéro de la carte que vous voulez jouer :" + ANSI_RESET);
                         nbCartes = Integer.parseInt(sc.nextLine());
-                    }
-
-                    switch (getMain().getCartes().get(nbCartes).getType()){
-                        case 1 :
-                            addPoint(getMain().getCartes().get(nbCartes).getPoint());
-                            if (isIA()) System.out.println(ANSI_PURPLE + "[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
-                            else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
-                            break;
-                        case 2 :
-                            addPointMilitaire(getPointMilitaire() + getMain().getCartes().get(nbCartes).getPoint());
-                            if (isIA()) System.out.println(ANSI_PURPLE +"[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires" + ANSI_RESET);
-                            else System.out.println(ANSI_YELLOW +"[CLIENT " + getNom() + "] - Vous avez joué " + getMain().getCartes().get(nbCartes) + " et avez ainsi gagné " + getMain().getCartes().get(nbCartes).getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires" + ANSI_RESET);
                     }
                     playCard(getMain().getCartes().get(nbCartes), getMain().getCartes().indexOf(getMain().getCartes().get(nbCartes)));
                     setAJoue(true);

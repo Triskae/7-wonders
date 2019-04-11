@@ -8,6 +8,9 @@ public abstract class Effet {
 		this.nom=nom;
 	}
 
-	abstract int getNbDePoint();
+	public String getNomEffet() {
+		return nom;
+	}
 
+	public abstract int getNbDePoint();
 }

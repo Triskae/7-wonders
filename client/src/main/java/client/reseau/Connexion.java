@@ -69,6 +69,10 @@ public class Connexion {
                         }
                     }
                     client.setMain(new Main(mainRecue));
+                    if (client.isIA()) {
+                        client.getInstanceIA().setChoixRestants(mainRecue);
+                        client.getInstanceIA().reinitialiserListeCartesInjouables();
+                    }
                     client.readyToPlay();
                 }
             });

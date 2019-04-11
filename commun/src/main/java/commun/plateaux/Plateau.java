@@ -1,5 +1,7 @@
 package commun.plateaux;
 
+import commun.cartes.Carte;
+
 import java.util.ArrayList;
 
 public abstract class Plateau {
@@ -8,6 +10,7 @@ public abstract class Plateau {
   private RessourceDepart ressourceDepart;
   private ArrayList<String> etapesA;
   private ArrayList<String> etapesB;
+  private ArrayList<Carte> cartesJouees = new ArrayList<>();
   private char face;
 
   public String getNom() { return this.nom; }
@@ -23,7 +26,17 @@ public abstract class Plateau {
       return this.etapesB;
   }
 
-  public char getFace() {return this.face; }
+  public ArrayList<Carte> getCartesJouees() {
+    return cartesJouees;
+  }
+
+  public void ajouterCarteJouee(Carte c) {
+    cartesJouees.add(c);
+  }
+
+  public char getFace() {
+    return this.face;
+  }
 
   public void setNom(String nom) {
     this.nom = nom;

@@ -2,15 +2,18 @@ package commun.cartes;
 
 import commun.Ressource;
 import commun.effets.AjouterPointMilitaire;
+import commun.effets.Effet;
 
 public abstract class CarteMilitaire extends Carte{
 
+
+    private AjouterPointMilitaire am;
     private int nbAttaque;
 
     public CarteMilitaire(String nom, int nbAttaque, Ressource cout) {
         super(nom,cout);
         this.nbAttaque = nbAttaque;
-        AjouterPointMilitaire am = new AjouterPointMilitaire("AjouterPointMilitaire", nbAttaque);
+        am = new AjouterPointMilitaire("AjouterPointMilitaire", nbAttaque);
     }
 
     public int getPoint() {
@@ -19,6 +22,11 @@ public abstract class CarteMilitaire extends Carte{
 
     public int getType(){
         return 2;
+    }
+
+    @Override
+    public Effet getEffet() {
+        return am;
     }
 
     @Override

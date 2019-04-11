@@ -1,10 +1,11 @@
 package commun;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class Ressource {
 
-    private HashMap<String, Integer>ressource = new HashMap<>();;
+    private HashMap<String, Integer>ressource = new HashMap<>();
 
     public Ressource(){
         initRessource();
@@ -36,6 +37,18 @@ public class Ressource {
             throw new Exception("Ressource inconnue");
         }
 
+    }
+
+    public HashMap<String, Integer> getRessources() {
+        return ressource;
+    }
+
+    public HashMap<String, Integer> getRessourcesSansValeursZero() {
+        HashMap<String, Integer> hashMapRetour = new HashMap<>();
+        for (Map.Entry<String, Integer> entrees : ressource.entrySet()) {
+            if (entrees.getValue() != 0) hashMapRetour.put(entrees.getKey(), entrees.getValue());
+        }
+        return hashMapRetour;
     }
 
     public Integer getRessource(String type) {

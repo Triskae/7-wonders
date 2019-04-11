@@ -2,6 +2,7 @@ package commun.cartes;
 
 
 import commun.Ressource;
+import commun.effets.Effet;
 
 public abstract class Carte {
 
@@ -23,6 +24,8 @@ public abstract class Carte {
                 "nom='" + nom + '\'' +
                 '}';
     }
+
+    public abstract Effet getEffet();
 
     public abstract int getType();
 

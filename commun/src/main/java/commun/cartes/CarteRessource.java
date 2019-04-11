@@ -5,10 +5,13 @@ import commun.effets.AjouterRessource;
 
 public class CarteRessource extends Carte{
 
+
+    private AjouterRessource aR;
+
     public CarteRessource(String nom, Ressource cout, Ressource... ressources) {
         super(nom, cout);
         for (Ressource s : ressources) {
-            AjouterRessource aR = new AjouterRessource("AjouterRessource", s);
+            aR = new AjouterRessource("AjouterRessource", s);
         }
     }
 
@@ -19,6 +22,11 @@ public class CarteRessource extends Carte{
 
     public int getType(){
         return 3;
+    }
+
+    @Override
+    public AjouterRessource getEffet() {
+        return aR;
     }
 
     public int getPoint(){return 0;}

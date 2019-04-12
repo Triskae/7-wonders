@@ -137,6 +137,13 @@ public class Connexion {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+
+            connexion.on("ajouterPointsVictoire", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    client.ajouterPointsVictoire((int) args[0]);
+                }
+            });
     }
 
     public void seConnecter() {

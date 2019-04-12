@@ -35,9 +35,12 @@ public class Client extends Thread {
     private boolean isIA=false;
     private IA instanceIA;
     private boolean aJoue;
+    private int pointsDeCombatsPositifs = 0;
+    private int pointsDeCombatsNegatif = 0;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
+    private int pointsVictoire = 0;
 
     public Client(String nom, boolean isIA) {
         this.nom = nom;
@@ -131,7 +134,15 @@ public class Client extends Thread {
         this.pointMilitaire += point;
     }
 
+    public int getPointsVictoire() {
+        return pointsVictoire;
+    }
+
+    public void setPointsVictoire(int pointsVictoire) {
+        this.pointsVictoire = pointsVictoire;
+    }
     public void tour(boolean nouveauTour) throws Exception {
+
         if (!aJoue) {
             if (isIA()) instanceIA.tour();
             else choixUtilisateur(nouveauTour);
@@ -330,6 +341,12 @@ public class Client extends Thread {
         return sc.nextLine();
     }
 
+    public void ajouterPointsVictoirePositif(int points) { pointsDeCombatsPositifs += points; }
+    public void ajouterPointsVictoireNegatif(int points) { pointsDeCombatsNegatif += points; }
+    public void calculerPointsVictoire() { pointsVictoire = pointsDeCombatsPositifs-pointsDeCombatsNegatif; }
+
+
+
     @Override
     public void run() {
         try {
@@ -346,4 +363,5 @@ public class Client extends Thread {
         connexion = new Connexion("http://" + "127.0.0.1" + ":" + port, this);
         this.seConnecter();
     }
+
 }

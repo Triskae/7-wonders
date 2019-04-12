@@ -137,6 +137,20 @@ public class Connexion {
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
+
+            connexion.on("ajouterPointsVictoirePositif", new Emitter.Listener() {
+                @Override
+                public void call(Object... args) {
+                    client.ajouterPointsVictoirePositif((int) args[0]);
+                }
+            });
+
+        connexion.on("ajouterPointsVictoireNegatif", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                client.ajouterPointsVictoireNegatif((int) args[0]);
+            }
+        });
     }
 
     public void seConnecter() {

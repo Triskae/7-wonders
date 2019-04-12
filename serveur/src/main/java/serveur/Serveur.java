@@ -15,6 +15,7 @@ import commun.plateaux.Plateau;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Serveur {
@@ -173,15 +174,56 @@ public class Serveur {
         }
     }
 
+    private void envoyerPointVictoire(SocketIOClient client) {
+        switch (numeroAge) {
+            case 1:
+            case 2:
+            case 3:
+        }
+    }
+
+    private void calculerPointVictoire(int pointsCourants, int pointsDroite, int pointsGauche) {
+        int totalCombatsGagnes = 0;
+        int totalCombatsPerdu = 0;
+
+        if (pointsCourants > pointsDroite) totalCombatsGagnes++;
+        if (pointsCourants > pointsGauche) totalCombatsGagnes++;
+        if (pointsCourants < pointsDroite) totalCombatsPerdu++;
+        if (pointsCourants < pointsGauche) totalCombatsPerdu++;
+
+
+
+
+    }
+
     private void verifierFinTour() {
         if (nbJoueursJoues == clients.size()) {
             if (numeroTour == 6) {
                 System.out.println("[SERVEUR] - Le sixième tour a été atteint, début de la phase de combat");
                 demanderMainsJoueurs();
 
-                /*
-                PHASE DE COMBAT ICI
-                 */
+                int hashSize = clientsHashMapPointsMilitaires.size();
+                int lastElementIndex = hashSize-1;
+                int currentIndex = 0;
+
+                List<Integer> values = new ArrayList<Integer>(clientsHashMapPointsMilitaires.values());
+                List<SocketIOClient> keys = new ArrayList<SocketIOClient >(clientsHashMapPointsMilitaires.keySet());
+
+                for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
+                    if (currentIndex == 0) {
+                        // Cas ou c'est le premier
+
+
+                        currentIndex++;
+                    } else if (currentIndex == lastElementIndex) {
+                        // Cas ou c'est le dernier
+
+
+                        currentIndex++;
+                    } else {
+                        currentIndex++;
+                    }
+                }
 
                 numeroAge++;
                 numeroTour = 0;

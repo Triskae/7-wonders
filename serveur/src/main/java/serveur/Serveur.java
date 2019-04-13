@@ -174,15 +174,7 @@ public class Serveur {
         }
     }
 
-    private void envoyerPointVictoire(SocketIOClient client) {
-        switch (numeroAge) {
-            case 1:
-            case 2:
-            case 3:
-        }
-    }
-
-    private void calculerPointVictoire(int pointsCourants, int pointsDroite, int pointsGauche) {
+    private void calculEtEnvoiePointsVictoires(int pointsCourants, int pointsDroite, int pointsGauche, SocketIOClient current) {
         int totalCombatsGagnes = 0;
         int totalCombatsPerdu = 0;
 
@@ -191,9 +183,11 @@ public class Serveur {
         if (pointsCourants < pointsDroite) totalCombatsPerdu++;
         if (pointsCourants < pointsGauche) totalCombatsPerdu++;
 
-
-
-
+        switch (numeroAge) {
+            case 1: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes-totalCombatsPerdu); //+1 points en age 1
+            case 2: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*3 - totalCombatsPerdu); //+3 points en age 2
+            case 3: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*5 - totalCombatsPerdu); //+5 points en age 3
+        }
     }
 
     private void verifierFinTour() {
@@ -206,21 +200,20 @@ public class Serveur {
                 int lastElementIndex = hashSize-1;
                 int currentIndex = 0;
 
-                List<Integer> values = new ArrayList<Integer>(clientsHashMapPointsMilitaires.values());
-                List<SocketIOClient> keys = new ArrayList<SocketIOClient >(clientsHashMapPointsMilitaires.keySet());
+                List<Integer> pointsCombats = new ArrayList<Integer>(clientsHashMapPointsMilitaires.values());
+                List<SocketIOClient> clients = new ArrayList<SocketIOClient >(clientsHashMapPointsMilitaires.keySet());
 
                 for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
                     if (currentIndex == 0) {
                         // Cas ou c'est le premier
-
-
+                        calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex+1), pointsCombats.get(lastElementIndex), clients.get(currentIndex));
                         currentIndex++;
                     } else if (currentIndex == lastElementIndex) {
                         // Cas ou c'est le dernier
-
-
+                        calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(0), pointsCombats.get(currentIndex-1), clients.get(currentIndex));
                         currentIndex++;
                     } else {
+                        calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex+1), pointsCombats.get(currentIndex-1), clients.get(currentIndex));
                         currentIndex++;
                     }
                 }

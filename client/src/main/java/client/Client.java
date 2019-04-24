@@ -142,6 +142,8 @@ public class Client extends Thread {
     public void setPointsVictoire(int pointsVictoire) {
         this.pointsVictoire = pointsVictoire;
     }
+
+
     public void tour(boolean nouveauTour) throws Exception {
 
         if (!aJoue) {

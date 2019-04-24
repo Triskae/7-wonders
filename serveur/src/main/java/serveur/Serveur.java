@@ -38,33 +38,6 @@ public class Serveur {
 
     private static final String ANSI_RESET = "\u001B[0m";
 
-    public static void main(String[] args) throws Exception {
-        Serveur serveur = new Serveur();
-    }
-
-    private Serveur() throws Exception {
-        int port = 60001;
-        String ipAdress = "127.0.0.1";
-        Configuration config = new Configuration();
-        config.setHostname(ipAdress);
-        config.setPort(port);
-        clients = new ArrayList<>();
-        clientsHashMap = new HashMap<>();
-        clientsHashMapPointsMilitaires = new HashMap<>();
-
-        // creation du serveur
-        server = new SocketIOServer(config);
-        server.start();
-
-        System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + port);
-        System.out.println("[SERVEUR] - Création d'un deck pour " + nbJoueurs + " joueurs");
-
-        deck = new Deck(nbJoueurs);
-        gestionnairePlateau = new GestionnairePlateau();
-
-        ajoutEcouteurs();
-    }
-
     public Serveur(int nbJoueurs, int nbJoueursIA, String adresse, int port) throws Exception {
         this.nbJoueurs = nbJoueurs;
         this.nbJoueursIA = nbJoueursIA;
@@ -149,12 +122,7 @@ public class Serveur {
                 //Ici faire tous les tests pour savoir si tous les joueurs sont prets
                 nbJoueurPrets++;
                 if (nbJoueurPrets == clients.size()) {
-                    for (SocketIOClient c : clients) {
-                        int[] payload = new int[2];
-                        payload[0] = numeroAge;
-                        payload[1] = numeroTour;
-                        c.sendEvent("turn", (Object) payload);
-                    }
+                    startTurn();
                 }
             }
         });
@@ -174,6 +142,16 @@ public class Serveur {
             }
         });
     }
+
+    private void startTurn() {
+        for (SocketIOClient c : clients) {
+            int[] payload = new int[2];
+            payload[0] = numeroAge;
+            payload[1] = numeroTour;
+            c.sendEvent("turn", (Object) payload);
+        }
+    }
+
 
     private void demanderMainsJoueurs() {
         for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
@@ -195,6 +173,7 @@ public class Serveur {
             case 2: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*3 - totalCombatsPerdu); break; //+3 points en age 2
             case 3: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*5 - totalCombatsPerdu); break;//+5 points en age 3
         }
+        startTurn();
     }
 
     private void phaseCombat() {
@@ -221,13 +200,37 @@ public class Serveur {
                 currentIndex++;
             }
         }
+        initMainsAge();
+    }
 
+    //
+    private void initMainsAge() {
         numeroAge++;
         numeroTour = 0;
+        nbJoueursJoues = 0;
+
+        try {
+            //TODO METTRE A JOUR CONSTRUCTEUR DE DECK (METTRE AGE EN PARAM)
+            this.deck = new Deck(this.nbJoueurs);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        Main main = new Main(deck.genererMain());
+        ArrayList<String> typesCartes = generateTypesCartes(main);
+
+
+        for (SocketIOClient client : clientsHashMap.keySet()) {
+            int[] payload = new int[2];
+            payload[0] = numeroAge;
+            payload[1] = numeroTour;
+            client.sendEvent("envoiMain", typesCartes);
+            client.sendEvent("finTour", (Object) payload);
+        }
     }
 
     private void verifierFinTour() {
-        if (nbJoueursJoues == clients.size()) {
+        if (nbJoueursJoues == clientsHashMap.size()) {
             if (numeroTour == 6) {
                 demanderMainsJoueurs();
             } else {
@@ -235,11 +238,9 @@ public class Serveur {
                 System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour " + numeroTour);
                 nbJoueursJoues = 0;
                 if (numeroAge % 2 != 0) clientsHashMap = permuter(true);
+                else clientsHashMap = permuter(false);
                 for (SocketIOClient c : clientsHashMap.keySet()) {
-                    ArrayList<String> typesCartes = new ArrayList<>();
-                    for (int i = 0; i < clientsHashMap.get(c).getCartes().size(); i++) {
-                        typesCartes.add(clientsHashMap.get(c).getCartes().get(i).getClass().getName());
-                    }
+                    ArrayList<String> typesCartes = generateTypesCartes(clientsHashMap.get(c));
                     int[] payload = new int[2];
                     payload[0] = numeroAge;
                     payload[1] = numeroTour;
@@ -252,24 +253,45 @@ public class Serveur {
         }
     }
 
-    // Fonction appelée pour distribuer cartes et plateaux
-    public void distribuerJeu() {
+    /**
+     * Permet de distribuer un plateau à chaque joueur
+     */
+    private void distribuerPlateau() {
         for (SocketIOClient c : clients) {
-            // System.out.println("[SERVEUR] - Envoi d'un plateau au client " + c.getRemoteAddress());
             Plateau p = gestionnairePlateau.RandomPlateau();
             c.sendEvent("envoiPlateau", p.getClass().getName());
+        }
+    }
 
-            // System.out.println("[SERVEUR] - Envoi d'une main au client " + c.getRemoteAddress());
+    /**
+     * Permet de distribuer une main à chaque joueur
+     */
+    private void distribuerMains() {
+        for (SocketIOClient c : clients) {
             Main main = new Main(deck.genererMain());
-            ArrayList<String> typesCartes = new ArrayList<>();
-            for (int i = 0; i < main.getCartes().size(); i++) {
-                typesCartes.add(main.getCartes().get(i).getClass().getName());
-            }
+            ArrayList<String> typesCartes = generateTypesCartes(main);
             c.sendEvent("envoiMain", typesCartes);
             // System.out.println("[SERVEUR] - Nombre de cartes restantes dans le deck : " + deck.getDeck().size());
             clientsHashMap.put(c, main);
             clientsHashMapPointsMilitaires.put(c, 0);
         }
+    }
+
+    private ArrayList<String> generateTypesCartes(Main main) {
+        ArrayList<String> typesCartes = new ArrayList<>();
+        for (int i = 0; i < main.getCartes().size(); i++) {
+            typesCartes.add(main.getCartes().get(i).getClass().getName());
+        }
+        return typesCartes;
+    }
+
+
+    /**
+     * Permet de distribuer un jeu complet (plateau + main)
+     */
+    private void distribuerJeu() {
+        distribuerPlateau();
+        distribuerMains();
     }
 
     /**

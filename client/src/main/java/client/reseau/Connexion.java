@@ -1,7 +1,6 @@
 package client.reseau;
 
 import client.Client;
-import client.IA.IA;
 import commun.Main;
 import commun.cartes.Carte;
 import commun.plateaux.Plateau;
@@ -13,7 +12,6 @@ import org.json.JSONException;
 
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Connexion {
 
@@ -47,19 +45,6 @@ public class Connexion {
                     connexion.close();
                     client.finPartie();
 
-                }
-            });
-
-            connexion.on("turn", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    try {
-                        JSONArray numeros = (JSONArray) objects[0];
-                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
-                        client.tour(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                 }
             });
 
@@ -109,7 +94,7 @@ public class Connexion {
             connexion.on("demanderPointsMilitaire", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    connexion.emit("envoyerPointsMilitaire", client.getPointMilitaire());
+                    connexion.emit("envoyerPointsMilitaire", client.getNbBoucliers());
                 }
             });
 
@@ -118,6 +103,19 @@ public class Connexion {
                 public void call(Object... objects) {
                     client.setNombrePiece(client.getNombrePiece() + 3);
                     if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
+                }
+            });
+
+            connexion.on("turn", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    try {
+                        JSONArray numeros = (JSONArray) objects[0];
+                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
+                        client.tour(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
             });
 

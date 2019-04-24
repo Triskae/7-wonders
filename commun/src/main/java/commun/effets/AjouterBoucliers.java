@@ -1,10 +1,10 @@
 package commun.effets;
 
-public class AjouterPointMilitaire extends Effet {
+public class AjouterBoucliers extends Effet {
 
         private int nbDePoint;
 
-        public AjouterPointMilitaire(String nom, int nbPoint){
+        public AjouterBoucliers(String nom, int nbPoint){
             super(nom);
             nbDePoint = nbPoint;
         }

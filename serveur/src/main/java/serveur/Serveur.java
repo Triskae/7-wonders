@@ -203,10 +203,9 @@ public class Serveur {
         initMainsAge();
     }
 
-    //
     private void initMainsAge() {
         numeroAge++;
-        numeroTour = 0;
+        numeroTour = 1;
         nbJoueursJoues = 0;
 
         try {

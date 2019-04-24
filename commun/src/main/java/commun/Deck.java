@@ -8,8 +8,8 @@ import java.util.Random;
 
 public class Deck {
 
-	private static ArrayList<Carte> carteEnJeu = new ArrayList();
-	ArrayList<Carte> deck = new ArrayList();
+	private static ArrayList<Carte> carteEnJeu = new ArrayList<Carte>();
+	private ArrayList<Carte> deck = new ArrayList<Carte>();
 
     public Deck(int nbJoueur) throws Exception {
 

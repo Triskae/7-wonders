@@ -62,7 +62,7 @@ public class Client extends Thread {
      * un ensemble de getter et setter
      **/
     public int getPointMilitaire() {
-        return pointMilitaire;
+        return pointsDeCombat;
     }
 
     public String getNom() {

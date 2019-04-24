@@ -35,18 +35,20 @@ public class Client extends Thread {
     private boolean isIA=false;
     private IA instanceIA;
     private boolean aJoue;
-    private int pointsDeCombat = 0;
+    private int pointsDeCombat;
 
     // Objet de synchro
     private final Object attenteDeconnexion = new Object();
     private int pointsVictoire = 0;
-
     public Client(String nom, boolean isIA) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
         if (isIA) {
             instanceIA = new IA(this, "bleu");
+            pointsDeCombat  = 0;
             setIA(true);
+        } else {
+            pointsDeCombat = 20;
         }
         this.ressources = new Ressource();
         try {
@@ -202,7 +204,7 @@ public class Client extends Thread {
                     if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
                     break;
                 case 2 :
-                    addPointMilitaire(getPointMilitaire() + carte.getPoint());
+                    addPointMilitaire(carte.getPoint());
                     if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires" + ANSI_RESET);
             }
         } else {

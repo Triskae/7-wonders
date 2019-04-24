@@ -142,6 +142,7 @@ public class Connexion {
                 @Override
                 public void call(Object... args) {
                     client.ajouterPointsVictoire((int) args[0]);
+                    System.out.println("Passage dans points victoire" + " " + (int) args[0]);
                 }
             });
     }

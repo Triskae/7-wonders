@@ -34,6 +34,7 @@ public class Serveur {
     private int nbJoueurPrets = 0;
     private int numeroTour = 1;
     private int numeroAge = 1;
+    private int clientNbRepondu = 0;
 
     private static final String ANSI_RESET = "\u001B[0m";
 
@@ -163,6 +164,12 @@ public class Serveur {
             public void onData(SocketIOClient socketIOClient, Integer integer, AckRequest ackRequest) throws Exception {
                 if (clientsHashMapPointsMilitaires.containsKey(socketIOClient)) {
                     clientsHashMapPointsMilitaires.put(socketIOClient, integer);
+                    clientNbRepondu++;
+                }
+
+                if (clientNbRepondu == nbJoueurs) {
+                    phaseCombat();
+                    // IL FAUT RESET LE NOMBRE DE CLIENT REPONDU A CHAQUE FIN D'AGE
                 }
             }
         });
@@ -184,57 +191,61 @@ public class Serveur {
         if (pointsCourants < pointsGauche) totalCombatsPerdu++;
 
         switch (numeroAge) {
-            case 1: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes-totalCombatsPerdu); //+1 points en age 1
-            case 2: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*3 - totalCombatsPerdu); //+3 points en age 2
-            case 3: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*5 - totalCombatsPerdu); //+5 points en age 3
+            case 1: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes-totalCombatsPerdu); break; //+1 points en age 1
+            case 2: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*3 - totalCombatsPerdu); break; //+3 points en age 2
+            case 3: current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes*5 - totalCombatsPerdu); break;//+5 points en age 3
         }
+    }
+
+    private void phaseCombat() {
+        System.out.println("[SERVEUR] - Le sixième tour a été atteint, début de la phase de combat");
+        int hashSize = clientsHashMapPointsMilitaires.size();
+
+        int lastElementIndex = hashSize-1;
+        int currentIndex = 0;
+
+        List<Integer> pointsCombats = new ArrayList<Integer>(clientsHashMapPointsMilitaires.values());
+        List<SocketIOClient> clients = new ArrayList<SocketIOClient >(clientsHashMapPointsMilitaires.keySet());
+
+        for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
+            if (currentIndex == 0) {
+                // Cas ou c'est le premier
+                calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex+1), pointsCombats.get(lastElementIndex), clients.get(currentIndex));
+                currentIndex++;
+            } else if (currentIndex == lastElementIndex) {
+                // Cas ou c'est le dernier
+                calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(0), pointsCombats.get(currentIndex-1), clients.get(currentIndex));
+                currentIndex++;
+            } else {
+                calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex+1), pointsCombats.get(currentIndex-1), clients.get(currentIndex));
+                currentIndex++;
+            }
+        }
+
+        numeroAge++;
+        numeroTour = 0;
     }
 
     private void verifierFinTour() {
         if (nbJoueursJoues == clients.size()) {
             if (numeroTour == 6) {
-                System.out.println("[SERVEUR] - Le sixième tour a été atteint, début de la phase de combat");
                 demanderMainsJoueurs();
-
-                int hashSize = clientsHashMapPointsMilitaires.size();
-                int lastElementIndex = hashSize-1;
-                int currentIndex = 0;
-
-                List<Integer> pointsCombats = new ArrayList<Integer>(clientsHashMapPointsMilitaires.values());
-                List<SocketIOClient> clients = new ArrayList<SocketIOClient >(clientsHashMapPointsMilitaires.keySet());
-
-                for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
-                    if (currentIndex == 0) {
-                        // Cas ou c'est le premier
-                        calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex+1), pointsCombats.get(lastElementIndex), clients.get(currentIndex));
-                        currentIndex++;
-                    } else if (currentIndex == lastElementIndex) {
-                        // Cas ou c'est le dernier
-                        calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(0), pointsCombats.get(currentIndex-1), clients.get(currentIndex));
-                        currentIndex++;
-                    } else {
-                        calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex+1), pointsCombats.get(currentIndex-1), clients.get(currentIndex));
-                        currentIndex++;
+            } else {
+                numeroTour++;
+                System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour " + numeroTour);
+                nbJoueursJoues = 0;
+                if (numeroAge % 2 != 0) clientsHashMap = permuter(true);
+                for (SocketIOClient c : clientsHashMap.keySet()) {
+                    ArrayList<String> typesCartes = new ArrayList<>();
+                    for (int i = 0; i < clientsHashMap.get(c).getCartes().size(); i++) {
+                        typesCartes.add(clientsHashMap.get(c).getCartes().get(i).getClass().getName());
                     }
+                    int[] payload = new int[2];
+                    payload[0] = numeroAge;
+                    payload[1] = numeroTour;
+                    c.sendEvent("envoiMain", typesCartes);
+                    c.sendEvent("finTour", (Object) payload);
                 }
-
-                numeroAge++;
-                numeroTour = 0;
-            }
-            numeroTour++;
-            System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour " + numeroTour);
-            nbJoueursJoues = 0;
-            if (numeroAge % 2 != 0) clientsHashMap = permuter(true);
-            for (SocketIOClient c : clientsHashMap.keySet()) {
-                ArrayList<String> typesCartes = new ArrayList<>();
-                for (int i = 0; i < clientsHashMap.get(c).getCartes().size(); i++) {
-                    typesCartes.add(clientsHashMap.get(c).getCartes().get(i).getClass().getName());
-                }
-                int[] payload = new int[2];
-                payload[0] = numeroAge;
-                payload[1] = numeroTour;
-                c.sendEvent("envoiMain", typesCartes);
-                c.sendEvent("finTour", (Object) payload);
             }
         } else {
             System.out.println("[SERVEUR] - AGE " + numeroAge + " - TOUR " + numeroTour + " : " + nbJoueursJoues + " sur " + nbJoueurs + " ont joués, le tour suivant commencera quand tout le monde aura joué");

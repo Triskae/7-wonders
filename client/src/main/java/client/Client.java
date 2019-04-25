@@ -12,7 +12,6 @@ import org.json.JSONArray;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -31,24 +30,20 @@ public class Client extends Thread {
     private Ressource ressources;
     private String nom;
     private Main main;
-    private int pointMilitaire;
-    private boolean isIA=false;
+    private boolean isIA = false;
     private IA instanceIA;
     private boolean aJoue;
-    private int pointsDeCombat;
-
-    // Objet de synchro
-    private final Object attenteDeconnexion = new Object();
+    private int boucliers;
     private int pointsVictoire = 0;
+    private final Object attenteDeconnexion = new Object(); // Objet de synchro
+
     public Client(String nom, boolean isIA) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
+        this.boucliers = 0;
         if (isIA) {
             instanceIA = new IA(this, "bleu");
-            pointsDeCombat  = 0;
             setIA(true);
-        } else {
-            pointsDeCombat = 20;
         }
         this.ressources = new Ressource();
         try {
@@ -61,8 +56,8 @@ public class Client extends Thread {
     /**
      * un ensemble de getter et setter
      **/
-    public int getPointMilitaire() {
-        return pointMilitaire;
+    public int getNbBoucliers() {
+        return boucliers;
     }
 
     public String getNom() {
@@ -131,19 +126,11 @@ public class Client extends Thread {
         getMain().getCartes().remove(carte);
     }
 
-    private void addPointMilitaire(int point) {
-        this.pointMilitaire += point;
+    private void addBoucliers(int point) {
+        this.boucliers += point;
     }
 
-    public int getPointsVictoire() {
-        return pointsVictoire;
-    }
-
-    public void setPointsVictoire(int pointsVictoire) {
-        this.pointsVictoire = pointsVictoire;
-    }
     public void tour(boolean nouveauTour) throws Exception {
-
         if (!aJoue) {
             if (isIA()) instanceIA.tour();
             else choixUtilisateur(nouveauTour);
@@ -152,6 +139,11 @@ public class Client extends Thread {
         }
     }
 
+    /**
+     * Permet d'effectuer l'action de défausse d'une carte
+     * @param carte l'instance de la carte à défausser
+     * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
+     */
     private void defausserCarte(Carte carte, int indiceCarte) {
         JSONArray payload = new JSONArray();
         payload.put(getNom());
@@ -166,6 +158,8 @@ public class Client extends Thread {
      * Permet de jouer une carte
      * @param carte l'instance de la carte à jouer
      * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
+     * @throws Exception utilisation de la méthode ajouterRessource qui peut envoyer une exception si une ressource qui
+     * n'existe pas est jouée
      */
     public void playCard(Carte carte, int indiceCarte) throws Exception {
         int nbVerifications = nombreDeVerifications(carte);
@@ -204,8 +198,8 @@ public class Client extends Thread {
                     if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
                     break;
                 case 2 :
-                    addPointMilitaire(carte.getPoint());
-                    if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points militaires, vous avez maintenant " + getPointMilitaire() + " points militaires" + ANSI_RESET);
+                    addBoucliers(carte.getPoint());
+                    if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " boucliers, vous avez maintenant " + getNbBoucliers() + " boucliers" + ANSI_RESET);
             }
         } else {
             if (isIA()) {
@@ -231,6 +225,12 @@ public class Client extends Thread {
         return totalVerifications;
     }
 
+    /**
+     * Permet d'afficher le dialogue de choix d'un utilisateur (choix d'une action de jeu)
+     * @param nouveauTour dans le cas où c'est un nouveau tour, un message supplémentaire est afficher pour faire
+     *                    apparaître au joueur ses ressources et sa main
+     * @throws Exception utilisation de la méthode playCard (se référer à la documentation de playCard)
+     */
     private void choixUtilisateur(boolean nouveauTour) throws Exception {
         if (!aJoue && !isIA()) {
             Scanner sc = new Scanner(System.in);
@@ -332,19 +332,30 @@ public class Client extends Thread {
         }
     }
 
+    /**
+     * Emet un évènement au serveur pour lui indiquer que le joueur est prêt à jouer
+     */
     public void readyToPlay() {
         if (!isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Nouvelle main reçue" + ANSI_RESET);
         connexion.emit("playerReady");
     }
 
+    /**
+     * Permet de lire une entrée au clavier
+     * @param sc le scanner utilisé pour lire les entrées clavier
+     * @param message le message que l'on veut afficher avant de lire une entrée
+     * @return ce qui a été lu par le scanner (ce que l'utilisateur a tappé)
+     */
     private String lireEntree(Scanner sc, String message) {
         System.out.println(message);
         return sc.nextLine();
     }
 
-    public void ajouterPointsVictoire(int points) { pointsVictoire += points; }
-
-
+    public void ajouterPointsVictoire(int points) {
+        pointsVictoire += points;
+        if (isIA()) System.out.println(ANSI_PURPLE + "[IA " + getNom() + "] - " + points + " points de victoire reçus pendant la phase de combat" + ANSI_RESET);
+        else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - " + points + " points de victoire reçus pendant la phase de combat" + ANSI_RESET);
+    }
 
     @Override
     public void run() {

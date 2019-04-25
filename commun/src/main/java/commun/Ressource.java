@@ -16,7 +16,7 @@ public class Ressource {
         this.ajouterRessource(nom, nb);
     }
 
-    public void initRessource(){
+    private void initRessource(){
         ressource.put("Bois",0);
         ressource.put("Pierre",0);
         ressource.put("Minerai",0);

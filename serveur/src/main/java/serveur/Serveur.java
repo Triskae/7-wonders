@@ -23,7 +23,7 @@ public class Serveur {
     private SocketIOServer server;
     private HashMap<SocketIOClient, Main> clientsHashMap;
     private HashMap<SocketIOClient, Integer> clientsHashMapPointsMilitaires;
-    private ArrayList<SocketIOClient> clients;
+    //private ArrayList<SocketIOClient> clients;
     private Deck deck;
     private GestionnairePlateau gestionnairePlateau;
     private String adresse;
@@ -46,7 +46,7 @@ public class Serveur {
         Configuration config = new Configuration();
         config.setHostname(this.adresse);
         config.setPort(this.port);
-        clients = new ArrayList<>();
+        //clients = new ArrayList<>();
         clientsHashMap = new HashMap<>();
         clientsHashMapPointsMilitaires = new HashMap<>();
 
@@ -64,16 +64,19 @@ public class Serveur {
 
     private void ajoutEcouteurs() {
         server.addConnectListener(new ConnectListener() {
+
+
+
             public void onConnect(SocketIOClient socketIOClient) {
                 System.out.println("[SERVEUR] - Connexion de " + socketIOClient.getRemoteAddress());
-                clients.add(socketIOClient);
-                System.out.println("[SERVEUR] - Nombre de clients : " + clients.size());
+                clientsHashMap.put(socketIOClient, null);
+                System.out.println("[SERVEUR] - Nombre de clients : " + clientsHashMap.size());
 
-                if (clients.size() == nbJoueurs) {
+                if (clientsHashMap.size() == nbJoueurs) {
                     System.out.println("[SERVEUR] - Tous les joueurs sont présents, la partie peut commencer");
                     distribuerJeu();
                 } else {
-                    System.out.println("[SERVEUR] - La partie commencera quand " + nbJoueurs + " seront connectés, actuellement " + clients.size() + "/" + nbJoueurs);
+                    System.out.println("[SERVEUR] - La partie commencera quand " + nbJoueurs + " seront connectés, actuellement " + clientsHashMap.size() + "/" + nbJoueurs);
                 }
             }
         });
@@ -81,55 +84,61 @@ public class Serveur {
         server.addDisconnectListener(new DisconnectListener() {
             @Override public void onDisconnect(SocketIOClient socketIOClient) {
                 System.out.println("[SERVEUR] - Déconnexion de " + socketIOClient.getRemoteAddress());
-                clients.remove(socketIOClient);
                 clientsHashMap.remove(socketIOClient);
-            }
-        });
-
-        server.addEventListener("jeu", ArrayList.class, new DataListener<ArrayList>() {
-            @Override
-            public void onData(SocketIOClient socketIOClient, ArrayList arrayList, AckRequest ackRequest) throws Exception {
-                String nomJoueur = (String) arrayList.get(0);
-                String nomCarteJouee = (String) arrayList.get(1);
-                int indiceCarte = (int) arrayList.get(2);
-                int typeInteraction = (int) arrayList.get(3);
-
-                Carte carteTemp;
-                Object objCarte = Class.forName(nomCarteJouee).newInstance();
-                carteTemp = (Carte) objCarte;
-
-                switch(typeInteraction) {
-                    case 1: // carte defaussée
-                        System.out.println("[SERVEUR] - Carte défaussée (" + carteTemp + ") par " + nomJoueur);
-                        clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
-                        nbJoueursJoues++;
-                        socketIOClient.sendEvent("confirmationCarteDefaussee");
-                        verifierFinTour();
-                        break;
-                    case 2: // carte jouée
-                        System.out.println("[SERVEUR] - Carte jouée (" + carteTemp + ") par " + nomJoueur);
-                        clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
-                        nbJoueursJoues++;
-                        verifierFinTour();
-                        break;
-                }
             }
         });
 
         server.addEventListener("playerReady", String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient socketIOClient, String s, AckRequest ackRequest) throws Exception {
-                //Ici faire tous les tests pour savoir si tous les joueurs sont prets
+            public void onData(SocketIOClient socketIOClient, String s, AckRequest ackRequest){
                 nbJoueurPrets++;
-                if (nbJoueurPrets == clients.size()) {
+                if (nbJoueurPrets == clientsHashMap.size()) {
+                    nbJoueurPrets = 0;
                     startTurn();
                 }
             }
         });
 
+
+        server.addEventListener("jeu", ArrayList.class, new DataListener<ArrayList>() {
+            @Override
+            public void onData(SocketIOClient socketIOClient, ArrayList arrayList, AckRequest ackRequest) {
+                String nomJoueur = (String) arrayList.get(0);
+                String nomCarteJouee = (String) arrayList.get(1);
+                int indiceCarte = (int) arrayList.get(2);
+                int typeInteraction = (int) arrayList.get(3);
+
+                Carte carteTemp = null;
+                try {
+                    carteTemp = (Carte) Class.forName(nomCarteJouee).newInstance();
+                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                System.out.println("Le joueur" + nomJoueur + " essaye de jouer la carte d'indice " + indiceCarte + " dans la main " + clientsHashMap.get(socketIOClient).getCartes());
+                    switch(typeInteraction) {
+                        case 1: // carte defaussée
+                            System.out.println("[SERVEUR] - Carte défaussée (" + carteTemp + ") par " + nomJoueur);
+                            clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
+                            nbJoueursJoues++;
+                            socketIOClient.sendEvent("confirmationCarteDefaussee");
+                            verifierFinTour();
+                            break;
+                        case 2: // carte jouée
+                            //TODO Incrémenter les variables de points de la carte joueur, c'est à lui de les comptabiliser et non au client
+                            // Les deux peuvent être garder mais le comptage des points ce fait avec
+                            System.out.println("[SERVEUR] - Carte jouée (" + carteTemp + ") par " + nomJoueur);
+                            clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
+                            nbJoueursJoues++;
+                            verifierFinTour();
+                            break;
+                    }
+            }
+        });
+
         server.addEventListener("envoyerPointsMilitaire", int.class, new DataListener<Integer>() {
             @Override
-            public void onData(SocketIOClient socketIOClient, Integer integer, AckRequest ackRequest) throws Exception {
+            public void onData(SocketIOClient socketIOClient, Integer integer, AckRequest ackRequest){
                 if (clientsHashMapPointsMilitaires.containsKey(socketIOClient)) {
                     clientsHashMapPointsMilitaires.put(socketIOClient, integer);
                     clientNbRepondu++;
@@ -144,7 +153,7 @@ public class Serveur {
     }
 
     private void startTurn() {
-        for (SocketIOClient c : clients) {
+        for (SocketIOClient c : clientsHashMap.keySet()) {
             int[] payload = new int[2];
             payload[0] = numeroAge;
             payload[1] = numeroTour;
@@ -153,7 +162,7 @@ public class Serveur {
     }
 
 
-    private void demanderMainsJoueurs() {
+    private void demanderPointsMilitaire() {
         for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
             c.sendEvent("demanderPointsMilitaire");
         }
@@ -224,14 +233,14 @@ public class Serveur {
             payload[0] = numeroAge;
             payload[1] = numeroTour;
             client.sendEvent("envoiMain", typesCartes);
-            client.sendEvent("finTour", (Object) payload);
+            //client.sendEvent("finTour", (Object) payload);
         }
     }
 
     private void verifierFinTour() {
         if (nbJoueursJoues == clientsHashMap.size()) {
             if (numeroTour == 6) {
-                demanderMainsJoueurs();
+                demanderPointsMilitaire();
             } else {
                 numeroTour++;
                 System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour " + numeroTour);
@@ -244,7 +253,7 @@ public class Serveur {
                     payload[0] = numeroAge;
                     payload[1] = numeroTour;
                     c.sendEvent("envoiMain", typesCartes);
-                    c.sendEvent("finTour", (Object) payload);
+                    c.sendEvent("turn", (Object) payload);
                 }
             }
         } else {
@@ -256,7 +265,7 @@ public class Serveur {
      * Permet de distribuer un plateau à chaque joueur
      */
     private void distribuerPlateau() {
-        for (SocketIOClient c : clients) {
+        for (SocketIOClient c : clientsHashMap.keySet()) {
             Plateau p = gestionnairePlateau.RandomPlateau();
             c.sendEvent("envoiPlateau", p.getClass().getName());
         }
@@ -266,16 +275,22 @@ public class Serveur {
      * Permet de distribuer une main à chaque joueur
      */
     private void distribuerMains() {
-        for (SocketIOClient c : clients) {
+        for (SocketIOClient c : clientsHashMap.keySet()) {
             Main main = new Main(deck.genererMain());
             ArrayList<String> typesCartes = generateTypesCartes(main);
             c.sendEvent("envoiMain", typesCartes);
             // System.out.println("[SERVEUR] - Nombre de cartes restantes dans le deck : " + deck.getDeck().size());
-            clientsHashMap.put(c, main);
+            clientsHashMap.replace(c, null, main);
             clientsHashMapPointsMilitaires.put(c, 0);
         }
     }
 
+    /**
+     * Cette fonction créer une vue de la main à envoyer au client
+     * Cette main est en faite List de nom de cartes qui sera recréé coté client avec la réflexion.
+     * @param main La main pour laquelle la vue va être créé
+     * @return La list qui va contenir le nom de toutes les cartes de la mains
+     */
     private ArrayList<String> generateTypesCartes(Main main) {
         ArrayList<String> typesCartes = new ArrayList<>();
         for (int i = 0; i < main.getCartes().size(); i++) {

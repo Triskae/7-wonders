@@ -48,26 +48,27 @@ public class Connexion {
                 }
             });
 
+            //Fonction appelé à chaque débu de tour pour recevoir la nouvelle main
             connexion.on("envoiMain", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
+
+                    // Reflexion et transformation de la liste de nom de carte en liste d'objet carte
+
                     ArrayList<Carte> mainRecue = new ArrayList<>();
-                    Object carteTemp;
                     JSONArray typesCartes = (JSONArray) objects[0];
+
                     for (int i = 0; i < typesCartes.length(); i++) {
                         try {
-                            carteTemp = Class.forName(typesCartes.getString(i)).newInstance();
-                            mainRecue.add((Carte) carteTemp);
+                            mainRecue.add((Carte) Class.forName(typesCartes.getString(i)).newInstance());
                         } catch (InstantiationException | IllegalAccessException | JSONException | ClassNotFoundException e) {
                             e.printStackTrace();
                         }
                     }
+
                     client.setMain(new Main(mainRecue));
-                    if (client.isIA()) {
-                        client.getInstanceIA().setChoixRestants(mainRecue);
-                        client.getInstanceIA().reinitialiserListeCartesInjouables();
-                    }
-                    client.readyToPlay();
+
+                    if (client.getPlateaux() != null && client.getMain() != null) client.readyToPlay();
                 }
             });
 
@@ -91,6 +92,38 @@ public class Connexion {
                 }
             });
 
+            connexion.on("turn", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    client.setAJoue(false);
+                    try {
+                        JSONArray numeros = (JSONArray) objects[0];
+                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
+                        client.tour(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            connexion.on("finTour", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    client.setAJoue(false);
+                    System.out.println("------------- Passage dans le fintour -------------");
+                    try {
+                        JSONArray numeros = (JSONArray) objects[0];
+                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
+                        client.tour(true);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+
             connexion.on("demanderPointsMilitaire", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
@@ -106,36 +139,6 @@ public class Connexion {
                 }
             });
 
-            connexion.on("turn", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    try {
-                        JSONArray numeros = (JSONArray) objects[0];
-                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
-                        client.tour(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            connexion.on("finTour", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    client.setAJoue(false);
-                    try {
-                        JSONArray numeros = (JSONArray) objects[0];
-                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
-                        client.tour(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-
             connexion.on("ajouterPointsVictoire", new Emitter.Listener() {
                 @Override
                 public void call(Object... args) {
@@ -143,6 +146,15 @@ public class Connexion {
                     System.out.println("Passage dans points victoire" + " " + (int) args[0]);
                 }
             });
+
+        connexion.on("debug", new Emitter.Listener() {
+            @Override
+            public void call(Object... args) {
+                System.out.println("----- Main client --------" + client.getNom());
+                System.out.println(client.getMain().getCartes());
+                System.out.println("----------------------------");
+            }
+        });
     }
 
     public void seConnecter() {

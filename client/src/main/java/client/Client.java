@@ -25,7 +25,7 @@ public class Client extends Thread {
     private static final String ANSI_GREEN = "\u001B[32m";
 
     private Connexion connexion;
-    private int nombrePoint;
+    private int nombrePointBatiments;
     private Plateau plateaux;
     private Ressource ressources;
     private String nom;
@@ -37,12 +37,12 @@ public class Client extends Thread {
     private int pointsVictoire = 0;
     private final Object attenteDeconnexion = new Object(); // Objet de synchro
 
-    public Client(String nom, boolean isIA) {
+    public Client(String nom, boolean isIA, String strat) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
         this.boucliers = 0;
         if (isIA) {
-            instanceIA = new IA(this, "bleu");
+            instanceIA = new IA(this, strat);
             setIA(true);
         }
         this.ressources = new Ressource();
@@ -64,8 +64,8 @@ public class Client extends Thread {
         return nom;
     }
 
-    private int getNombrePoint() {
-        return nombrePoint;
+    private int getNombrePointBatiment() {
+        return nombrePointBatiments;
     }
 
     public Plateau getPlateaux() {
@@ -90,8 +90,8 @@ public class Client extends Thread {
         this.connexion = connexion;
     }
 
-    private void addPoint(int nombrePoint) {
-        this.nombrePoint += nombrePoint;
+    private void addPointBatiments(int nombrePoint) {
+        this.nombrePointBatiments += nombrePoint;
     }
 
     public boolean getAJoue() {
@@ -130,10 +130,10 @@ public class Client extends Thread {
         this.boucliers += point;
     }
 
-    public void tour(boolean nouveauTour) throws Exception {
+    public void tour(boolean isNouveauTour){
         if (!aJoue) {
             if (isIA()) instanceIA.tour();
-            else choixUtilisateur(nouveauTour);
+            else choixUtilisateur(isNouveauTour);
         } else {
             if (!isIA()) System.out.println(ANSI_RED + "[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour" + ANSI_RESET);
         }
@@ -158,10 +158,8 @@ public class Client extends Thread {
      * Permet de jouer une carte
      * @param carte l'instance de la carte à jouer
      * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
-     * @throws Exception utilisation de la méthode ajouterRessource qui peut envoyer une exception si une ressource qui
-     * n'existe pas est jouée
      */
-    public void playCard(Carte carte, int indiceCarte) throws Exception {
+    public void playCard(Carte carte, int indiceCarte) {
         int nbVerifications = nombreDeVerifications(carte);
         int nbValidations = 0;
         boolean jeuPossible = false;
@@ -179,11 +177,13 @@ public class Client extends Thread {
         if (nbValidations == nbVerifications) jeuPossible = true;
 
         if (jeuPossible) {
+            System.out.println("jeu possible par " + getNom() + " joue la carte " + carte);
             JSONArray payload = new JSONArray();
             payload.put(getNom());
             payload.put(carte.getClass().getName());
             payload.put(indiceCarte);
             payload.put(2);
+
             connexion.emit("jeu", payload);
             plateaux.ajouterCarteJouee(carte);
             if (carte.getEffet() instanceof AjouterRessource) {
@@ -191,11 +191,12 @@ public class Client extends Thread {
                     if (ressourcesCarte.getValue() != 0) ressources.ajouterRessource(ressourcesCarte.getKey(), ressourcesCarte.getValue());
                 }
             }
-            removeCard(carte);
+            //TODO Retirer si besoin le remove card
+            //removeCard(carte);
             switch (carte.getType()){
                 case 1 :
-                    addPoint(carte.getPoint());
-                    if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePoint() + " points" + ANSI_RESET);
+                    addPointBatiments(carte.getPoint());
+                    if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePointBatiment() + " points batiments" + ANSI_RESET);
                     break;
                 case 2 :
                     addBoucliers(carte.getPoint());
@@ -229,9 +230,8 @@ public class Client extends Thread {
      * Permet d'afficher le dialogue de choix d'un utilisateur (choix d'une action de jeu)
      * @param nouveauTour dans le cas où c'est un nouveau tour, un message supplémentaire est afficher pour faire
      *                    apparaître au joueur ses ressources et sa main
-     * @throws Exception utilisation de la méthode playCard (se référer à la documentation de playCard)
      */
-    private void choixUtilisateur(boolean nouveauTour) throws Exception {
+    private void choixUtilisateur(boolean nouveauTour) {
         if (!aJoue && !isIA()) {
             Scanner sc = new Scanner(System.in);
             int reponseUtilisateur;
@@ -305,7 +305,7 @@ public class Client extends Thread {
     public String toString() {
         return "Nom : /n" + this.nom +
                 "Nombre de pièces : /n" + this.ressources.getRessource("Gold") +
-                "Nombre de points : /n" + this.nombrePoint;
+                "Nombre de points batiments : /n" + this.nombrePointBatiments;
     }
 
     private void seConnecter() {

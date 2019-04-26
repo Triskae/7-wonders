@@ -10,6 +10,7 @@ public class IA {
 
     private Client c;
     private String strat;
+    private final Object key = new Object();
 
     public IA(Client c, String strategie) {
         strat = strategie;
@@ -36,29 +37,27 @@ public class IA {
      */
 
     private void jouerCarteParCouleur(int type) {
-        int bestScore = -1;
-        int score;
-        int indice = -1;
 
+        synchronized (key) {
+            int bestScore = -1;
+            int indice = 0;
 
-        // Extrait la carte avec le plus gros score
-        for (int i = 0; i < c.getMain().getCartes().size(); i++) {
-            if (c.getMain().getCartes().get(i).getType() == type) {
-                score = c.getMain().getCartes().get(i).getPoint();
-                if (bestScore < score) {
-                    bestScore = score;
-                    indice = i;
+            for (int i = 0; i < c.getMain().getCartes().size(); i++) {
+                if (c.getMain().getCartes().get(i).getType() == type) {
+                    if (c.getMain().getCartes().get(i).getPoint() >= bestScore) {
+                        bestScore = c.getMain().getCartes().get(i).getPoint();
+                        indice = i;
+                    }
                 }
             }
-        }
 
-        // Si il y a une carte du type en paramètre
-        if (bestScore != -1) {
-            Carte carteJouee = c.getMain().getCartes().get(indice);
-            c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
-            c.setAJoue(true);
-        } else { //joue une carte aléatoire sinon
-            jouerCarteAlea();
+            // Si il y a une carte du type en paramètre
+            if (bestScore != -1) {
+                Carte carteJouee = c.getMain().getCartes().get(indice);
+                c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
+            } else { //joue une carte aléatoire sinon
+                jouerCarteAlea();
+            }
         }
     }
 
@@ -66,10 +65,13 @@ public class IA {
         switch (strat) {
             case "random":
                 jouerCarteAlea();
+                break;
             case "bleu":
                 jouerCarteParCouleur(1);
+                break;
             case "rouge":
                 jouerCarteParCouleur(2);
+                break;
         }
     }
 

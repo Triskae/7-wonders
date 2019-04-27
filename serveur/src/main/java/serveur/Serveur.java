@@ -9,33 +9,35 @@ import com.corundumstudio.socketio.listener.DataListener;
 import com.corundumstudio.socketio.listener.DisconnectListener;
 import commun.Deck;
 import commun.Main;
-import commun.cartes.Carte;
 import commun.plateaux.GestionnairePlateau;
 import commun.plateaux.Plateau;
 
-import java.util.*;
+import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class Serveur {
 
     private SocketIOServer server;
-    private HashMap<SocketIOClient, Main> clientsHashMap;
+    private HashMap<SocketIOClient, Plateau> clientsPlateaux;
+    private HashMap<SocketIOClient, Main> clientsMains;
     private HashMap<SocketIOClient, String> identificationsClients;
     private HashMap<SocketIOClient, Boolean> statusDeJeu;
-    private HashMap<SocketIOClient, Integer> clientsHashMapPointsMilitaires;
+    private HashMap<SocketIOClient, Integer> clientsNbBoucliers;
+    private HashMap<SocketIOClient, Integer> clientsNbPointsBatiments;
+    private HashMap<SocketIOClient, Integer> resultatsPhaseCombat;
     private Deck deck;
     private GestionnairePlateau gestionnairePlateau;
     private String adresse;
     private int nbJoueurs;
     private int nbJoueursIA;
     private int port;
-    private int nbJoueursJoues = 0;
-    private int nbJoueurPrets = 0;
     private int numeroTour = 1;
     private int numeroAge = 1;
-    private int clientNbRepondu = 0;
     private int nbMainsDepartRecues = 0;
     private int nbPlateauRecus = 0;
-    private HashMap<SocketIOClient, Tour> jeuTour;
 
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_RED = "\u001B[31m";
@@ -48,11 +50,13 @@ public class Serveur {
         Configuration config = new Configuration();
         config.setHostname(this.adresse);
         config.setPort(this.port);
+        clientsPlateaux = new HashMap<>();
         identificationsClients = new HashMap<>();
-        clientsHashMap = new HashMap<>();
+        clientsMains = new HashMap<>();
         statusDeJeu = new HashMap<>();
-        clientsHashMapPointsMilitaires = new HashMap<>();
-        jeuTour = new HashMap<>();
+        clientsNbBoucliers = new HashMap<>();
+        clientsNbPointsBatiments = new HashMap<>();
+        resultatsPhaseCombat = new HashMap<>();
 
         server = new SocketIOServer(config);
         server.start();
@@ -72,16 +76,20 @@ public class Serveur {
 
             public void onConnect(SocketIOClient socketIOClient) {
                 System.out.println("[SERVEUR] - Connexion de " + socketIOClient.getRemoteAddress());
-                clientsHashMap.put(socketIOClient, null);
+                clientsMains.put(socketIOClient, null);
                 identificationsClients.put(socketIOClient, null);
                 statusDeJeu.put(socketIOClient, false);
-                System.out.println("[SERVEUR] - Nombre de clients : " + clientsHashMap.size());
+                clientsPlateaux.put(socketIOClient, null);
+                clientsNbPointsBatiments.put(socketIOClient, 0);
+                clientsNbBoucliers.put(socketIOClient, 0);
+                resultatsPhaseCombat.put(socketIOClient, 0);
+                System.out.println("[SERVEUR] - Nombre de clients : " + clientsMains.size());
 
-                if (clientsHashMap.size() == nbJoueurs) {
+                if (clientsMains.size() == nbJoueurs) {
                     System.out.println("[SERVEUR] - Tous les joueurs sont présents, la partie peut commencer");
-                    distribuerJeu();
+                    distribuerPlateaux();
                 } else {
-                    System.out.println("[SERVEUR] - La partie commencera quand " + nbJoueurs + " seront connectés, actuellement " + clientsHashMap.size() + "/" + nbJoueurs);
+                    System.out.println("[SERVEUR] - La partie commencera quand " + nbJoueurs + " seront connectés, actuellement " + clientsMains.size() + "/" + nbJoueurs);
                 }
             }
         });
@@ -90,77 +98,7 @@ public class Serveur {
             @Override
             public void onDisconnect(SocketIOClient socketIOClient) {
                 System.out.println("[SERVEUR] - Déconnexion de " + socketIOClient.getRemoteAddress());
-                clientsHashMap.remove(socketIOClient);
-            }
-        });
-
-        server.addEventListener("playerReady", String.class, new DataListener<String>() {
-            @Override
-            public void onData(SocketIOClient socketIOClient, String s, AckRequest ackRequest) {
-                nbJoueurPrets++;
-                if (nbJoueurPrets == clientsHashMap.size()) {
-                    nbJoueurPrets = 0;
-                    startTurn();
-                }
-            }
-        });
-
-
-        server.addEventListener("jeu", ArrayList.class, new DataListener<ArrayList>() {
-            @Override
-            public void onData(SocketIOClient socketIOClient, ArrayList arrayList, AckRequest ackRequest) {
-                String nomJoueur = (String) arrayList.get(0);
-                String nomCarteJouee = (String) arrayList.get(1);
-                int indiceCarte = (int) arrayList.get(2);
-                int typeInteraction = (int) arrayList.get(3);
-
-                try {
-                    Carte carteTemp = (Carte) Class.forName(nomCarteJouee).newInstance();
-                    jeuTour.put(socketIOClient, new Tour(typeInteraction, carteTemp, nomJoueur, indiceCarte));
-
-                } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-                nbJoueursJoues++;
-                if (nbJoueursJoues == clientsHashMap.size()) {
-                    for (SocketIOClient current : jeuTour.keySet()) {
-                        System.out.println("Carte indice " + jeuTour.get(current).getIndice() + " va etre retirée");
-                        switch (jeuTour.get(current).getTypeInteraction()) {
-                            case 1: // carte defaussée
-                                System.out.println("[SERVEUR] - Carte défaussée (" + jeuTour.get(current).getCarteJouee() + ") par " + jeuTour.get(current).getNomJoueur());
-
-                                // System.out.println("Main de " + jeuTour.get(current).getNomJoueur() + " avant \n" + clientsHashMap.get(current).getCartes());
-                                clientsHashMap.get(current).getCartes().remove(jeuTour.get(current).getIndice());
-                                // System.out.println("Main de " + jeuTour.get(current).getNomJoueur() + " après \n" + clientsHashMap.get(current).getCartes());
-                                verifierFinTour();
-                                break;
-                            case 2: // carte jouée
-                                System.out.println("[SERVEUR] - Carte jouée (" + jeuTour.get(current).getCarteJouee() + ") par " + jeuTour.get(current).getNomJoueur());
-
-                                // System.out.println("Main de " + jeuTour.get(current).getNomJoueur() + " avant \n" + clientsHashMap.get(current).getCartes());
-                                clientsHashMap.get(current).getCartes().remove(jeuTour.get(current).getIndice());
-                                // System.out.println("Main de " + jeuTour.get(current).getNomJoueur() + " après \n" + clientsHashMap.get(current).getCartes());
-                                verifierFinTour();
-                                break;
-                        }
-                    }
-                }
-            }
-        });
-
-        server.addEventListener("envoyerPointsMilitaire", int.class, new DataListener<Integer>() {
-            @Override
-            public void onData(SocketIOClient socketIOClient, Integer integer, AckRequest ackRequest) {
-                if (clientsHashMapPointsMilitaires.containsKey(socketIOClient)) {
-                    clientsHashMapPointsMilitaires.put(socketIOClient, integer);
-                    clientNbRepondu++;
-                }
-
-                if (clientNbRepondu == nbJoueurs) {
-                    phaseCombat();
-                    // IL FAUT RESET LE NOMBRE DE CLIENT REPONDU A CHAQUE FIN D'AGE
-                }
+                clientsMains.remove(socketIOClient);
             }
         });
 
@@ -190,19 +128,28 @@ public class Serveur {
                     int indiceCarte = (int) arrayList.get(0);
                     int typeAction = (int) arrayList.get(1);
 
-                    if (indiceCarte > clientsHashMap.get(socketIOClient).getCartes().size() - 1) {
+                    if (indiceCarte > clientsMains.get(socketIOClient).getCartes().size() - 1) {
                         System.out.println(ANSI_RED + "[SERVEUR] - Problème de synchronisation!" + ANSI_RESET);
                     }
 
                     if (typeAction == 1) {
-                        System.out.println("[SERVEUR] - Réception de la demande de défausse de la carte " + clientsHashMap.get(socketIOClient).getCartes().get(indiceCarte) + " par " + identificationsClients.get(socketIOClient));
+                        System.out.println("[SERVEUR] - Réception de la demande de défausse de la carte " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " par " + identificationsClients.get(socketIOClient));
                     } else {
-                        System.out.println("[SERVEUR] - Réception de la demande de jeu de la carte " + clientsHashMap.get(socketIOClient).getCartes().get(indiceCarte) + " par " + identificationsClients.get(socketIOClient));
+                        System.out.println("[SERVEUR] - Réception de la demande de jeu de la carte " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " par " + identificationsClients.get(socketIOClient));
+                        clientsPlateaux.get(socketIOClient).ajouterCarteJouee(clientsMains.get(socketIOClient).getCartes().get(indiceCarte));
+
+                        switch (clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getType()) {
+                            case 1:
+                                clientsNbPointsBatiments.replace(socketIOClient, clientsNbPointsBatiments.get(socketIOClient) + clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getPoint());
+                                System.out.println("[SERVEUR] - " + identificationsClients.get(socketIOClient) + " vient de jouer " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " et vient ainsi de gagner " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getPoint() + " points de bâtiment, ce qui lui donne maintenant un total de " + clientsNbPointsBatiments.get(socketIOClient) + " points de bâtiments!");
+                                break;
+                            case 2:
+                                clientsNbBoucliers.replace(socketIOClient, clientsNbBoucliers.get(socketIOClient) + clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getPoint());
+                                System.out.println("[SERVEUR] - " + identificationsClients.get(socketIOClient) + " vient de jouer " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " et vient ainsi de gagner " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getPoint() + " boucliers, ce qui lui donne maintenant un total de " + clientsNbBoucliers.get(socketIOClient) + " boucliers!");
+                        }
                     }
 
-                    System.out.println("[SERVEUR] - Suppression de la carte " + clientsHashMap.get(socketIOClient).getCartes().get(indiceCarte) + " de la main du joueur " + identificationsClients.get(socketIOClient));
-                    clientsHashMap.get(socketIOClient).getCartes().remove(indiceCarte);
-                    System.out.println("[SERVEUR] - Nouvelle main (avant permutation) pour " + identificationsClients.get(socketIOClient) + "\n" + clientsHashMap.get(socketIOClient));
+                    clientsMains.get(socketIOClient).getCartes().remove(indiceCarte);
 
                     statusDeJeu.replace(socketIOClient, true);
                     verifToutLeMondeAJoue();
@@ -214,40 +161,28 @@ public class Serveur {
     }
 
     private void verifToutLeMondeAJoue() {
-        if (numeroTour == 6) {
-            System.out.println("[SERVEUR] - Tour 6 atteint");
-        } else {
-            int nbAJoue = 0;
-            // Calcul du nombre de joueurs qui ont déjà joués
+        int nbAJoue = 0;
+        // Calcul du nombre de joueurs qui ont déjà joués
+        for (SocketIOClient c : statusDeJeu.keySet()) {
+            if (statusDeJeu.get(c)) nbAJoue++;
+        }
+
+        if (nbAJoue == nbJoueurs && !(numeroTour == 6)) {
             for (SocketIOClient c : statusDeJeu.keySet()) {
-                if (statusDeJeu.get(c)) nbAJoue++;
+                statusDeJeu.replace(c, false);
             }
 
-            if (nbAJoue == nbJoueurs) {
-                for (SocketIOClient c : statusDeJeu.keySet()) {
-                    statusDeJeu.replace(c, false);
-                }
+            if (numeroAge % 2 != 0) clientsMains = permuter(true);
+            else clientsMains = permuter(false);
 
-                clientsHashMap = permuter(true);
-
-//                System.out.println("[SERVEUR] - Début permutation des mains : rappel mains actuelles\n");
-//                for (SocketIOClient c : clientsHashMap.keySet()) {
-//                    System.out.println("Pour " + identificationsClients.get(c));
-//                    System.out.println(clientsHashMap.get(c));
-//                }
-//                clientsHashMap = permuter(true);
-//                System.out.println("[SERVEUR] - Fin permutation des mains : nouvelles mains\n");
-//                for (SocketIOClient c : clientsHashMap.keySet()) {
-//                    System.out.println("Pour " + identificationsClients.get(c));
-//                    System.out.println(clientsHashMap.get(c));
-//                }
-
-                numeroTour++;
-                nbMainsDepartRecues = 0;
-                envoyerNouvellesMains();
-            } else {
-                System.out.println("[SERVEUR] - Tous les joueurs n'ont pas encore joués");
-            }
+            numeroTour++;
+            nbMainsDepartRecues = 0;
+            System.out.println("[SERVEUR] - Tous les joueurs ont joués, début du tour " + numeroTour);
+            envoyerNouvellesMains();
+        } else if (nbAJoue == nbJoueurs) {
+            phaseCombat();
+        } else {
+            System.out.println("[SERVEUR] - Tous les joueurs n'ont pas encore joués");
         }
     }
 
@@ -266,17 +201,21 @@ public class Serveur {
     }
 
     private void demarrerLeJeu() {
-        for (SocketIOClient c : clientsHashMap.keySet()) {
+        for (SocketIOClient c : clientsMains.keySet()) {
             statusDeJeu.replace(c, false);
             c.sendEvent("nouveauTour");
         }
         System.out.println("========================== DEBUT DU TOUR " + numeroTour + " DE L'AGE " + numeroAge + " ==========================");
     }
 
+    /**
+     * Envoi de la main de départ à chaque joueur
+     * Diffère de la méthode envoyerNouvellesMains
+     */
     private void envoyerMainsDeDepart() {
-        for (SocketIOClient c : clientsHashMap.keySet()) {
+        for (SocketIOClient c : clientsMains.keySet()) {
             Main main = new Main(deck.genererMain());
-            clientsHashMap.replace(c, main);
+            clientsMains.replace(c, main);
             ArrayList<String> typesCartes = generateTypesCartes(main);
             System.out.println("[SERVEUR] - Envoi de la main de départ\n" + main + "\nà " + identificationsClients.get(c));
             c.sendEvent("envoyerMain", typesCartes);
@@ -284,27 +223,11 @@ public class Serveur {
     }
 
     private void envoyerNouvellesMains() {
-        for (SocketIOClient c : clientsHashMap.keySet()) {
-            Main main = clientsHashMap.get(c);
+        for (SocketIOClient c : clientsMains.keySet()) {
+            Main main = clientsMains.get(c);
             ArrayList<String> typesCartes = generateTypesCartes(main);
             System.out.println("[SERVEUR] - Envoi de la nouvelle main\n" + main + "\nà " + identificationsClients.get(c));
             c.sendEvent("envoyerMain", typesCartes);
-        }
-    }
-
-    private void startTurn() {
-        for (SocketIOClient c : clientsHashMap.keySet()) {
-            int[] payload = new int[2];
-            payload[0] = numeroAge;
-            payload[1] = numeroTour;
-            c.sendEvent("turn", (Object) payload);
-        }
-    }
-
-
-    private void demanderPointsMilitaire() {
-        for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
-            c.sendEvent("demanderPointsMilitaire");
         }
     }
 
@@ -317,111 +240,63 @@ public class Serveur {
         if (pointsCourants < pointsDroite) totalCombatsPerdu++;
         if (pointsCourants < pointsGauche) totalCombatsPerdu++;
 
+        int nbPointsGagnes = 0;
+
         switch (numeroAge) {
             case 1:
-                current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes - totalCombatsPerdu);
-                break; //+1 points en age 1
+                nbPointsGagnes = totalCombatsGagnes - totalCombatsPerdu;
+                break; // +1 point en age 1
             case 2:
-                current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes * 3 - totalCombatsPerdu);
-                break; //+3 points en age 2
+                nbPointsGagnes = totalCombatsGagnes * 3 - totalCombatsPerdu;
+                break; // +3 points en age 2
             case 3:
-                current.sendEvent("ajouterPointsVictoire", totalCombatsGagnes * 5 - totalCombatsPerdu);
-                break;//+5 points en age 3
+                nbPointsGagnes = totalCombatsGagnes * 5 - totalCombatsPerdu;
+                break; // +5 points en age 3
         }
-        startTurn();
+
+        System.out.println("[SERVEUR] - Calcul nombre de points gagnés pour " + identificationsClients.get(current));
+        resultatsPhaseCombat.replace(current, nbPointsGagnes);
+        current.sendEvent("ajouterPointsVictoire", nbPointsGagnes);
     }
 
     private void phaseCombat() {
-        System.out.println("[SERVEUR] - Le sixième tour a été atteint, début de la phase de combat");
-        int hashSize = clientsHashMapPointsMilitaires.size();
-
+        System.out.println("[SERVEUR] - Début de la phase de combat");
+        int hashSize = clientsNbBoucliers.size();
         int lastElementIndex = hashSize - 1;
         int currentIndex = 0;
 
-        List<Integer> pointsCombats = new ArrayList<Integer>(clientsHashMapPointsMilitaires.values());
-        List<SocketIOClient> clients = new ArrayList<SocketIOClient>(clientsHashMapPointsMilitaires.keySet());
+        List<Integer> boucliers = new ArrayList<>(clientsNbBoucliers.values());
+        List<SocketIOClient> clients = new ArrayList<>(clientsNbBoucliers.keySet());
 
-        for (SocketIOClient c : clientsHashMapPointsMilitaires.keySet()) {
+        for (SocketIOClient c : clientsNbBoucliers.keySet()) {
             if (currentIndex == 0) {
                 // Cas ou c'est le premier
-                calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex + 1), pointsCombats.get(lastElementIndex), clients.get(currentIndex));
+                calculEtEnvoiePointsVictoires(boucliers.get(currentIndex), boucliers.get(currentIndex + 1), boucliers.get(lastElementIndex), clients.get(currentIndex));
                 currentIndex++;
             } else if (currentIndex == lastElementIndex) {
                 // Cas ou c'est le dernier
-                calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(0), pointsCombats.get(currentIndex - 1), clients.get(currentIndex));
+                calculEtEnvoiePointsVictoires(boucliers.get(currentIndex), boucliers.get(0), boucliers.get(currentIndex - 1), clients.get(currentIndex));
                 currentIndex++;
             } else {
-                calculEtEnvoiePointsVictoires(pointsCombats.get(currentIndex), pointsCombats.get(currentIndex + 1), pointsCombats.get(currentIndex - 1), clients.get(currentIndex));
+                calculEtEnvoiePointsVictoires(boucliers.get(currentIndex), boucliers.get(currentIndex + 1), boucliers.get(currentIndex - 1), clients.get(currentIndex));
                 currentIndex++;
             }
         }
-        initMainsAge();
-    }
 
-    private void initMainsAge() {
-        numeroAge++;
-        numeroTour = 1;
-        nbJoueursJoues = 0;
-
-        try {
-            //TODO METTRE A JOUR CONSTRUCTEUR DE DECK (METTRE AGE EN PARAM)
-            this.deck = new Deck(this.nbJoueurs);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        for (SocketIOClient client : clientsHashMap.keySet()) {
-            Main main = new Main(deck.genererMain());
-            ArrayList<String> typesCartes = generateTypesCartes(main);
-            client.sendEvent("envoiMain", typesCartes);
-        }
-    }
-
-    private void verifierFinTour() {
-        if (nbJoueursJoues == clientsHashMap.size()) {
-            if (numeroTour == 6) {
-                demanderPointsMilitaire();
-            } else {
-                numeroTour++;
-                System.out.println("[SERVEUR] - Tous les joueurs ont joué, début du tour " + numeroTour);
-                nbJoueursJoues = 0;
-                if (numeroAge % 2 != 0) clientsHashMap = permuter(true);
-                else clientsHashMap = permuter(false);
-                for (SocketIOClient c : clientsHashMap.keySet()) {
-                    ArrayList<String> typesCartes = generateTypesCartes(clientsHashMap.get(c));
-                    int[] payload = new int[2];
-                    payload[0] = numeroAge;
-                    payload[1] = numeroTour;
-                    c.sendEvent("envoiMain", typesCartes);
-                    c.sendEvent("turn", (Object) payload);
-                }
-            }
-        } else {
-            System.out.println("[SERVEUR] - AGE " + numeroAge + " - TOUR " + numeroTour + " : " + nbJoueursJoues + " sur " + nbJoueurs + " ont joués, le tour suivant commencera quand tout le monde aura joué");
+        System.out.println("========================== RESULTATS DE LA PHASE DE COMBAT DE L'AGE " + numeroAge + " ==========================");
+        for (SocketIOClient c : clientsMains.keySet()) {
+            System.out.println(identificationsClients.get(c) + " a obtenu " + resultatsPhaseCombat.get(c) + " point(s) de victoire suite à la phase de combat!");
         }
     }
 
     /**
      * Permet de distribuer un plateau à chaque joueur
      */
-    private void distribuerPlateau() {
-        for (SocketIOClient c : clientsHashMap.keySet()) {
+    private void distribuerPlateaux() {
+        for (SocketIOClient c : clientsMains.keySet()) {
             Plateau p = gestionnairePlateau.RandomPlateau();
+            clientsPlateaux.replace(c, p);
             c.sendEvent("envoiPlateau", p.getClass().getName());
-        }
-    }
-
-    /**
-     * Permet de distribuer une main à chaque joueur
-     */
-    private void distribuerMains() {
-        for (SocketIOClient c : clientsHashMap.keySet()) {
-            Main main = new Main(deck.genererMain());
-            ArrayList<String> typesCartes = generateTypesCartes(main);
-            c.sendEvent("envoiMain", typesCartes);
-            clientsHashMap.replace(c, main);
-            clientsHashMapPointsMilitaires.put(c, 0);
-            System.out.println("");
         }
     }
 
@@ -440,30 +315,19 @@ public class Serveur {
         return typesCartes;
     }
 
-
-    /**
-     * Permet de distribuer un jeu complet (plateau + main)
-     */
-    private void distribuerJeu() {
-        distribuerPlateau();
-        // distribuerMains();
-    }
-
     /**
      * Permet de permutter les mains des joueurs
-     *
      * @param sens true signifie que les cartes vont être permutées vers la gauche et false vers la droite
+     * @return la nouvelle HashMap contenant les SocketIOClient des clients ainsi que leur nouvelle main après permutation
      */
     private HashMap<SocketIOClient, Main> permuter(boolean sens) {
         HashMap<SocketIOClient, Main> nouvelleClientsHashMap = new HashMap<>();
         ArrayList<SocketIOClient> clientsTemp = new ArrayList<>();
         ArrayList<Main> mainsTemp = new ArrayList<>();
-
-        for (Map.Entry<SocketIOClient, Main> entree : clientsHashMap.entrySet()) {
+        for (Map.Entry<SocketIOClient, Main> entree : clientsMains.entrySet()) {
             clientsTemp.add(entree.getKey());
             mainsTemp.add(entree.getValue());
         }
-
         if (sens) {
             // permutation vers la gauche
             Main premiereMainTemp = mainsTemp.get(0);
@@ -479,11 +343,9 @@ public class Serveur {
             }
             mainsTemp.set(0, derniereMainTemp);
         }
-
-        for (int i = 0; i < clientsHashMap.size(); i++) {
+        for (int i = 0; i < clientsMains.size(); i++) {
             nouvelleClientsHashMap.put(clientsTemp.get(i), mainsTemp.get(i));
         }
-
         return nouvelleClientsHashMap;
     }
 }

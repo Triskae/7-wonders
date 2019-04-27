@@ -17,7 +17,6 @@ public class Connexion {
 
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
     private static final String ANSI_GREEN = "\u001B[32m";
 
     private final Client client;
@@ -48,31 +47,6 @@ public class Connexion {
                 }
             });
 
-            //Fonction appelé à chaque débu de tour pour recevoir la nouvelle main
-            connexion.on("envoiMain", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-
-                    // Reflexion et transformation de la liste de nom de carte en liste d'objet carte
-
-                    ArrayList<Carte> mainRecue = new ArrayList<>();
-                    JSONArray typesCartes = (JSONArray) objects[0];
-
-                    for (int i = 0; i < typesCartes.length(); i++) {
-                        try {
-                            mainRecue.add((Carte) Class.forName(typesCartes.getString(i)).newInstance());
-                        } catch (InstantiationException | IllegalAccessException | JSONException | ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    }
-
-                    Main main = new Main(mainRecue);
-                    client.setMain(main);
-
-                    if (client.getPlateaux() != null && client.getMain() != null) client.readyToPlay();
-                }
-            });
-
             connexion.on("envoiPlateau", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
@@ -83,8 +57,6 @@ public class Connexion {
                     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-//                    if (client.isIA()) System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
-//                    else System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
                     try {
                         client.addRessourceDepart(client.getPlateaux());
                     } catch (Exception e) {
@@ -126,82 +98,31 @@ public class Connexion {
                     }
                 }
             });
-
-            connexion.on("turn", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    try {
-                        JSONArray numeros = (JSONArray) objects[0];
-                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
-                        client.setNumTour(Integer.parseInt(numeros.getString(1)));
-                        client.setNumAge(Integer.parseInt(numeros.getString(0)));
-                        client.tour(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            connexion.on("finTour", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    client.setAJoue(false);
-                    System.out.println("------------- Passage dans le fintour -------------");
-                    try {
-                        JSONArray numeros = (JSONArray) objects[0];
-                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
-                        client.tour(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }
 
-            connexion.on("demanderPointsMilitaire", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    connexion.emit("envoyerPointsMilitaire", client.getNbBoucliers());
-                }
-            });
-
-            connexion.on("confirmationCarteDefaussee", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    client.setNombrePiece(client.getNombrePiece() + 3);
-                    if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
-                }
-            });
-
-            connexion.on("ajouterPointsVictoire", new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    client.ajouterPointsVictoire((int) args[0]);
-                    System.out.println("Passage dans points victoire" + " " + (int) args[0]);
-                }
-            });
+        connexion.on("confirmationCarteDefaussee", new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                client.setNombrePiece(client.getNombrePiece() + 3);
+                if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
+            }
+        });
     }
 
     public void jouer(JSONArray payload) throws JSONException {
         if ((int) payload.get(1) == 1) {
-            System.out.println("[CLIENT " + client.getNom() + "] - J'essaye de défausser la carte d'indice " + payload.get(0));
+            System.out.println("[CLIENT " + client.getNom() + "] - J'essaie de défausser la carte d'indice " + payload.get(0));
         } else {
-            System.out.println("[CLIENT " + client.getNom() + "] - J'essaye de jouer la carte d'indice " + payload.get(0));
+            System.out.println("[CLIENT " + client.getNom() + "] - J'essaie de jouer la carte d'indice " + payload.get(0));
         }
         connexion.emit("actionDeJeu", payload);
     }
 
     public void seConnecter() {
-        // on se connecte
         connexion.connect();
     }
-
-    public Socket getSocket() {
-        return connexion;
-    }
-
     public void emit(String str, Object... payload) {
         connexion.emit(str, payload);
     }

@@ -5,7 +5,6 @@ import client.reseau.Connexion;
 import commun.Main;
 import commun.Ressource;
 import commun.cartes.Carte;
-import commun.effets.AjouterRessource;
 import commun.plateaux.Plateau;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +25,6 @@ public class Client extends Thread {
     private static final String ANSI_GREEN = "\u001B[32m";
 
     private Connexion connexion;
-    private int nombrePointBatiments;
     private Plateau plateaux;
     private Ressource ressources;
     private String nom;
@@ -34,29 +32,10 @@ public class Client extends Thread {
     private boolean isIA = false;
     private IA instanceIA;
     private boolean aJoue;
+    private int nombrePointBatiments;
     private int boucliers;
     private int pointsVictoire = 0;
-    private int compteurJeu = 0;
     private final Object attenteDeconnexion = new Object(); // Objet de synchro
-
-    public int getNumTour() {
-        return numTour;
-    }
-
-    public void setNumTour(int numTour) {
-        this.numTour = numTour;
-    }
-
-    public int getNumAge() {
-        return numAge;
-    }
-
-    public void setNumAge(int numAge) {
-        this.numAge = numAge;
-    }
-
-    private int numTour = 1;
-    private int numAge = 1;
 
     public Client(String nom, boolean isIA, String strat) {
         this.nom = nom;
@@ -127,7 +106,7 @@ public class Client extends Thread {
         ressources.setRessource("Gold", nombrePiece);
     }
 
-    public void setAJoue(boolean aJoue) {
+    private void setAJoue(boolean aJoue) {
         this.aJoue = aJoue;
     }
 
@@ -158,18 +137,15 @@ public class Client extends Thread {
 
     /**
      * Permet d'effectuer l'action de défausse d'une carte
-     * @param carte l'instance de la carte à défausser
      * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
      */
-    private void defausserCarte(Carte carte, int indiceCarte) throws JSONException {
+    private void defausserCarte(int indiceCarte) throws JSONException {
         System.out.println("[CLIENT " + getNom() + "] - J'ai décidé de défausser avec la main suivante");
         System.out.println(getMain());
         JSONArray payload = new JSONArray();
         payload.put(indiceCarte);
         payload.put(1);
         connexion.jouer(payload);
-        // connexion.emit("jeu", payload);
-        // removeCard(carte);
     }
 
     /**
@@ -199,26 +175,9 @@ public class Client extends Thread {
             payload.put(indiceCarte);
             payload.put(2);
             connexion.jouer(payload);
-//            plateaux.ajouterCarteJouee(carte);
-//            if (carte.getEffet() instanceof AjouterRessource) {
-//                for (Map.Entry<String, Integer> ressourcesCarte : ((AjouterRessource) carte.getEffet()).getRessources().entrySet()) {
-//                    if (ressourcesCarte.getValue() != 0) ressources.ajouterRessource(ressourcesCarte.getKey(), ressourcesCarte.getValue());
-//                }
-//            }
-//            switch (carte.getType()){
-//                case 1 :
-//                    addPointBatiments(carte.getPoint());
-//                    if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePointBatiment() + " points batiments" + ANSI_RESET);
-//                    break;
-//                case 2 :
-//                    addBoucliers(carte.getPoint());
-//                    if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " boucliers, vous avez maintenant " + getNbBoucliers() + " boucliers" + ANSI_RESET);
-//                    break;
-//            }
         } else {
             if (isIA()) {
-                // System.out.println("carte " + carte + " défaussée par " + getNom() + "pendant le tour " + getNumTour() + "et age " + getNumAge());
-                defausserCarte(carte, indiceCarte);
+                defausserCarte(indiceCarte);
             } else {
                 System.out.println(ANSI_RED +"[CLIENT " + getNom() + "] - Il vous manque des ressources pour jouer la carte sélectionnée" + ANSI_RESET);
                 tour(false);
@@ -283,7 +242,7 @@ public class Client extends Thread {
                         System.out.println(ANSI_CYAN + "[CLIENT " + getNom() + "] - Veuillez saisir le numéro de la carte que vous voulez défausser :" + ANSI_RESET);
                         nbCartes = Integer.parseInt(sc.nextLine());
                     }
-                    defausserCarte(getMain().getCartes().get(nbCartes), getMain().getCartes().indexOf(getMain().getCartes().get(nbCartes)));
+                    defausserCarte(getMain().getCartes().indexOf(getMain().getCartes().get(nbCartes)));
                     setAJoue(true);
                     break;
             }
@@ -321,23 +280,14 @@ public class Client extends Thread {
         return "Client{" +
                 "connexion=" + connexion +
                 ", nombrePointBatiments=" + nombrePointBatiments +
-                //", plateaux=" + plateaux +
-                //", ressources=" + ressources +
                 ", nom='" + nom + '\'' +
-                //", main=" + main +
                 ", isIA=" + isIA +
                 ", instanceIA=" + instanceIA +
                 ", aJoue=" + aJoue +
-                //", boucliers=" + boucliers +
-                //", pointsVictoire=" + pointsVictoire +
-                //", attenteDeconnexion=" + attenteDeconnexion +
-                ", numTour=" + numTour +
-                ", numAge=" + numAge +
                 '}';
     }
 
     private void seConnecter() {
-        // on se connecte
         this.connexion.seConnecter();
         synchronized (attenteDeconnexion) {
             try {
@@ -361,14 +311,6 @@ public class Client extends Thread {
     }
 
     /**
-     * Emet un évènement au serveur pour lui indiquer que le joueur est prêt à jouer
-     */
-    public void readyToPlay() {
-        if (!isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - Nouvelle main reçue" + ANSI_RESET);
-        connexion.emit("playerReady");
-    }
-
-    /**
      * Permet de lire une entrée au clavier
      * @param sc le scanner utilisé pour lire les entrées clavier
      * @param message le message que l'on veut afficher avant de lire une entrée
@@ -377,12 +319,6 @@ public class Client extends Thread {
     private String lireEntree(Scanner sc, String message) {
         System.out.println(message);
         return sc.nextLine();
-    }
-
-    public void ajouterPointsVictoire(int points) {
-        pointsVictoire += points;
-        if (isIA()) System.out.println(ANSI_PURPLE + "[IA " + getNom() + "] - " + points + " points de victoire reçus pendant la phase de combat" + ANSI_RESET);
-        else System.out.println(ANSI_YELLOW + "[CLIENT " + getNom() + "] - " + points + " points de victoire reçus pendant la phase de combat" + ANSI_RESET);
     }
 
     @Override

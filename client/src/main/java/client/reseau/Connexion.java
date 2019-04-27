@@ -95,10 +95,11 @@ public class Connexion {
             connexion.on("turn", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    client.setAJoue(false);
                     try {
                         JSONArray numeros = (JSONArray) objects[0];
                         if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
+                        client.setNumTour(Integer.parseInt(numeros.getString(1)));
+                        client.setNumAge(Integer.parseInt(numeros.getString(0)));
                         client.tour(true);
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -150,9 +151,7 @@ public class Connexion {
         connexion.on("debug", new Emitter.Listener() {
             @Override
             public void call(Object... args) {
-                System.out.println("----- Main client --------" + client.getNom());
-                System.out.println(client.getMain().getCartes());
-                System.out.println("----------------------------");
+                System.out.println(client);
             }
         });
     }

@@ -37,6 +37,25 @@ public class Client extends Thread {
     private int pointsVictoire = 0;
     private final Object attenteDeconnexion = new Object(); // Objet de synchro
 
+    public int getNumTour() {
+        return numTour;
+    }
+
+    public void setNumTour(int numTour) {
+        this.numTour = numTour;
+    }
+
+    public int getNumAge() {
+        return numAge;
+    }
+
+    public void setNumAge(int numAge) {
+        this.numAge = numAge;
+    }
+
+    private int numTour = 1;
+    private int numAge = 1;
+
     public Client(String nom, boolean isIA, String strat) {
         this.nom = nom;
         this.main = new Main(new ArrayList<>());
@@ -131,12 +150,8 @@ public class Client extends Thread {
     }
 
     public void tour(boolean isNouveauTour){
-        if (!aJoue) {
             if (isIA()) instanceIA.tour();
             else choixUtilisateur(isNouveauTour);
-        } else {
-            if (!isIA()) System.out.println(ANSI_RED + "[CLIENT " + getNom() + "] - Vous avez déjà joué pendant ce tour" + ANSI_RESET);
-        }
     }
 
     /**
@@ -177,12 +192,13 @@ public class Client extends Thread {
         if (nbValidations == nbVerifications) jeuPossible = true;
 
         if (jeuPossible) {
-            System.out.println("jeu possible par " + getNom() + " joue la carte " + carte);
             JSONArray payload = new JSONArray();
             payload.put(getNom());
             payload.put(carte.getClass().getName());
             payload.put(indiceCarte);
             payload.put(2);
+
+            System.out.println("carte " + carte+ "jouée par " + getNom() + "pendant le tour " + getNumTour() + "et age " + getNumAge());
 
             connexion.emit("jeu", payload);
             plateaux.ajouterCarteJouee(carte);
@@ -191,8 +207,6 @@ public class Client extends Thread {
                     if (ressourcesCarte.getValue() != 0) ressources.ajouterRessource(ressourcesCarte.getKey(), ressourcesCarte.getValue());
                 }
             }
-            //TODO Retirer si besoin le remove card
-            //removeCard(carte);
             switch (carte.getType()){
                 case 1 :
                     addPointBatiments(carte.getPoint());
@@ -201,9 +215,11 @@ public class Client extends Thread {
                 case 2 :
                     addBoucliers(carte.getPoint());
                     if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " boucliers, vous avez maintenant " + getNbBoucliers() + " boucliers" + ANSI_RESET);
+                    break;
             }
         } else {
             if (isIA()) {
+                System.out.println("carte " + carte+ "défaussée par " + getNom() + "pendant le tour " + getNumTour() + "et age " + getNumAge());
                 defausserCarte(carte, indiceCarte);
             } else {
                 System.out.println(ANSI_RED +"[CLIENT " + getNom() + "] - Il vous manque des ressources pour jouer la carte sélectionnée" + ANSI_RESET);
@@ -302,10 +318,24 @@ public class Client extends Thread {
         }
     }
 
+    @Override
     public String toString() {
-        return "Nom : /n" + this.nom +
-                "Nombre de pièces : /n" + this.ressources.getRessource("Gold") +
-                "Nombre de points batiments : /n" + this.nombrePointBatiments;
+        return "Client{" +
+                "connexion=" + connexion +
+                ", nombrePointBatiments=" + nombrePointBatiments +
+                //", plateaux=" + plateaux +
+                //", ressources=" + ressources +
+                ", nom='" + nom + '\'' +
+                //", main=" + main +
+                ", isIA=" + isIA +
+                ", instanceIA=" + instanceIA +
+                ", aJoue=" + aJoue +
+                //", boucliers=" + boucliers +
+                //", pointsVictoire=" + pointsVictoire +
+                //", attenteDeconnexion=" + attenteDeconnexion +
+                ", numTour=" + numTour +
+                ", numAge=" + numAge +
+                '}';
     }
 
     private void seConnecter() {

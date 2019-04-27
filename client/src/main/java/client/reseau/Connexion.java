@@ -66,7 +66,8 @@ public class Connexion {
                         }
                     }
 
-                    client.setMain(new Main(mainRecue));
+                    Main main = new Main(mainRecue);
+                    client.setMain(main);
 
                     if (client.getPlateaux() != null && client.getMain() != null) client.readyToPlay();
                 }
@@ -82,11 +83,45 @@ public class Connexion {
                     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-                    if (client.isIA()) System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
-                    else System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
+//                    if (client.isIA()) System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
+//                    else System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
                     try {
                         client.addRessourceDepart(client.getPlateaux());
                     } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    connexion.emit("confirmationReceptionPlateau", new JSONArray().put(client.getNom()).put(client.getAJoue()));
+                }
+            });
+
+            connexion.on("envoyerMain", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    ArrayList<Carte> mainRecue = new ArrayList<>();
+                    JSONArray typesCartes = (JSONArray) objects[0];
+
+                    for (int i = 0; i < typesCartes.length(); i++) {
+                        try {
+                            mainRecue.add((Carte) Class.forName(typesCartes.getString(i)).newInstance());
+                        } catch (InstantiationException | IllegalAccessException | JSONException | ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                    Main main = new Main(mainRecue);
+                    client.setMain(main);
+                    System.out.println("[CLIENT " + client.getNom() + "] - Réception de la main suivante\n" + client.getMain());
+                    connexion.emit("confirmationReceptionMain");
+                }
+            });
+
+            connexion.on("nouveauTour", new Emitter.Listener() {
+                @Override
+                public void call(Object... objects) {
+                    System.out.println("[CLIENT " + client.getNom() + "] - J'ai reçu le message nouveau tour");
+                    try {
+                        client.tour(true);
+                    } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
@@ -147,13 +182,15 @@ public class Connexion {
                     System.out.println("Passage dans points victoire" + " " + (int) args[0]);
                 }
             });
+    }
 
-        connexion.on("debug", new Emitter.Listener() {
-            @Override
-            public void call(Object... args) {
-                System.out.println(client);
-            }
-        });
+    public void jouer(JSONArray payload) throws JSONException {
+        if ((int) payload.get(1) == 1) {
+            System.out.println("[CLIENT " + client.getNom() + "] - J'essaye de défausser la carte d'indice " + payload.get(0));
+        } else {
+            System.out.println("[CLIENT " + client.getNom() + "] - J'essaye de jouer la carte d'indice " + payload.get(0));
+        }
+        connexion.emit("actionDeJeu", payload);
     }
 
     public void seConnecter() {

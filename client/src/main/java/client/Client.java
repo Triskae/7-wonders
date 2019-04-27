@@ -8,6 +8,7 @@ import commun.cartes.Carte;
 import commun.effets.AjouterRessource;
 import commun.plateaux.Plateau;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
@@ -35,6 +36,7 @@ public class Client extends Thread {
     private boolean aJoue;
     private int boucliers;
     private int pointsVictoire = 0;
+    private int compteurJeu = 0;
     private final Object attenteDeconnexion = new Object(); // Objet de synchro
 
     public int getNumTour() {
@@ -149,9 +151,9 @@ public class Client extends Thread {
         this.boucliers += point;
     }
 
-    public void tour(boolean isNouveauTour){
-            if (isIA()) instanceIA.tour();
-            else choixUtilisateur(isNouveauTour);
+    public void tour(boolean isNouveauTour) throws JSONException {
+        if (isIA()) instanceIA.tour();
+        else choixUtilisateur(isNouveauTour);
     }
 
     /**
@@ -159,14 +161,15 @@ public class Client extends Thread {
      * @param carte l'instance de la carte à défausser
      * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
      */
-    private void defausserCarte(Carte carte, int indiceCarte) {
+    private void defausserCarte(Carte carte, int indiceCarte) throws JSONException {
+        System.out.println("[CLIENT " + getNom() + "] - J'ai décidé de défausser avec la main suivante");
+        System.out.println(getMain());
         JSONArray payload = new JSONArray();
-        payload.put(getNom());
-        payload.put(carte.getClass().getName());
         payload.put(indiceCarte);
         payload.put(1);
-        connexion.emit("jeu", payload);
-        removeCard(carte);
+        connexion.jouer(payload);
+        // connexion.emit("jeu", payload);
+        // removeCard(carte);
     }
 
     /**
@@ -174,7 +177,7 @@ public class Client extends Thread {
      * @param carte l'instance de la carte à jouer
      * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
      */
-    public void playCard(Carte carte, int indiceCarte) {
+    public void playCard(Carte carte, int indiceCarte) throws JSONException {
         int nbVerifications = nombreDeVerifications(carte);
         int nbValidations = 0;
         boolean jeuPossible = false;
@@ -193,33 +196,28 @@ public class Client extends Thread {
 
         if (jeuPossible) {
             JSONArray payload = new JSONArray();
-            payload.put(getNom());
-            payload.put(carte.getClass().getName());
             payload.put(indiceCarte);
             payload.put(2);
-
-            System.out.println("carte " + carte+ "jouée par " + getNom() + "pendant le tour " + getNumTour() + "et age " + getNumAge());
-
-            connexion.emit("jeu", payload);
-            plateaux.ajouterCarteJouee(carte);
-            if (carte.getEffet() instanceof AjouterRessource) {
-                for (Map.Entry<String, Integer> ressourcesCarte : ((AjouterRessource) carte.getEffet()).getRessources().entrySet()) {
-                    if (ressourcesCarte.getValue() != 0) ressources.ajouterRessource(ressourcesCarte.getKey(), ressourcesCarte.getValue());
-                }
-            }
-            switch (carte.getType()){
-                case 1 :
-                    addPointBatiments(carte.getPoint());
-                    if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePointBatiment() + " points batiments" + ANSI_RESET);
-                    break;
-                case 2 :
-                    addBoucliers(carte.getPoint());
-                    if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " boucliers, vous avez maintenant " + getNbBoucliers() + " boucliers" + ANSI_RESET);
-                    break;
-            }
+            connexion.jouer(payload);
+//            plateaux.ajouterCarteJouee(carte);
+//            if (carte.getEffet() instanceof AjouterRessource) {
+//                for (Map.Entry<String, Integer> ressourcesCarte : ((AjouterRessource) carte.getEffet()).getRessources().entrySet()) {
+//                    if (ressourcesCarte.getValue() != 0) ressources.ajouterRessource(ressourcesCarte.getKey(), ressourcesCarte.getValue());
+//                }
+//            }
+//            switch (carte.getType()){
+//                case 1 :
+//                    addPointBatiments(carte.getPoint());
+//                    if (!isIA()) System.out.println(ANSI_GREEN + "[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " points, vous avez maintenant " + getNombrePointBatiment() + " points batiments" + ANSI_RESET);
+//                    break;
+//                case 2 :
+//                    addBoucliers(carte.getPoint());
+//                    if (!isIA()) System.out.println(ANSI_GREEN +"[CLIENT " + getNom() + "] - Vous avez joué " + carte.getNom() + " et avez ainsi gagné " + carte.getPoint() + " boucliers, vous avez maintenant " + getNbBoucliers() + " boucliers" + ANSI_RESET);
+//                    break;
+//            }
         } else {
             if (isIA()) {
-                System.out.println("carte " + carte+ "défaussée par " + getNom() + "pendant le tour " + getNumTour() + "et age " + getNumAge());
+                // System.out.println("carte " + carte + " défaussée par " + getNom() + "pendant le tour " + getNumTour() + "et age " + getNumAge());
                 defausserCarte(carte, indiceCarte);
             } else {
                 System.out.println(ANSI_RED +"[CLIENT " + getNom() + "] - Il vous manque des ressources pour jouer la carte sélectionnée" + ANSI_RESET);
@@ -247,7 +245,7 @@ public class Client extends Thread {
      * @param nouveauTour dans le cas où c'est un nouveau tour, un message supplémentaire est afficher pour faire
      *                    apparaître au joueur ses ressources et sa main
      */
-    private void choixUtilisateur(boolean nouveauTour) {
+    private void choixUtilisateur(boolean nouveauTour) throws JSONException {
         if (!aJoue && !isIA()) {
             Scanner sc = new Scanner(System.in);
             int reponseUtilisateur;

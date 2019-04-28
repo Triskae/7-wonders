@@ -140,8 +140,6 @@ public class Client extends Thread {
      * @param indiceCarte l'indice de la position de la carte dans la main du joueur, utilisé par le serveur
      */
     private void defausserCarte(int indiceCarte) throws JSONException {
-        System.out.println("[CLIENT " + getNom() + "] - J'ai décidé de défausser avec la main suivante");
-        System.out.println(getMain());
         JSONArray payload = new JSONArray();
         payload.put(indiceCarte);
         payload.put(1);

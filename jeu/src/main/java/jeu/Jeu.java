@@ -62,8 +62,8 @@ public class Jeu {
 
         // Cas pour donner un nom  aux IAs
         for (int i = 0; i < nbJoueursIA; i++) {
-            Thread.sleep(1000);
             new Client("IA" + i, true, "bleu").start();
+            Thread.sleep(1000);
         }
     }
 

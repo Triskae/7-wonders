@@ -22,10 +22,7 @@ public class IA {
     private void jouerCarteAlea() throws JSONException {
         if (!c.getMain().getCartes().isEmpty()) {
             Carte carteJouee = randomCarte(c.getMain().getCartes());
-            System.out.println("[CLIENT " + c.getNom() + "] - J'ai décidé d'une action de jeu avec la main suivante");
-            System.out.println(c.getMain());
             c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
-            // c.setAJoue(true);
         }
     }
 
@@ -35,7 +32,6 @@ public class IA {
      * Sinon joue une carte aléatoire
      * @param type Le type de la carte (carte bleu = 1, carte rouge = 2)
      */
-
     private void jouerCarteParCouleur(int type) throws JSONException {
         int bestScore = -1;
         int indice = 0;
@@ -52,8 +48,6 @@ public class IA {
         // Si il y a une carte du type en paramètre
         if (bestScore != -1) {
             Carte carteJouee = c.getMain().getCartes().get(indice);
-            System.out.println("[CLIENT " + c.getNom() + "] - J'ai décidé d'une action de jeu avec la main suivante");
-            System.out.println(c.getMain());
             c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
         } else { //joue une carte aléatoire sinon
             jouerCarteAlea();

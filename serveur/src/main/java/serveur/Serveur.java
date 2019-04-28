@@ -150,7 +150,6 @@ public class Serveur {
                             default:
                                 System.out.println("[SERVEUR] - " + identificationsClients.get(socketIOClient) + " vient de jouer " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + "!");
                         }
-
                     }
 
                     clientsMains.get(socketIOClient).getCartes().remove(indiceCarte);
@@ -264,7 +263,6 @@ public class Serveur {
         }
 
         resultatsPhaseCombat.replace(current, nbPointsGagnes);
-        current.sendEvent("ajouterPointsVictoire", nbPointsGagnes);
     }
 
     private void phaseCombat() throws Exception {
@@ -311,7 +309,7 @@ public class Serveur {
         }
 
         if (numeroAge == 3) {
-            System.out.println("========================== L'AGE 3 A ETE ATTEINT, FIN DU JEU ==========================");
+            System.out.println("========================== LA FIN DE L'AGE 3 A ETE ATTEINTE, FIN DU JEU ==========================");
         } else {
             nbMainsDepartRecues = 0;
             numeroTour = 1;

@@ -12,7 +12,6 @@ import commun.Main;
 import commun.plateaux.GestionnairePlateau;
 import commun.plateaux.Plateau;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +27,7 @@ public class Serveur {
     private HashMap<SocketIOClient, Integer> clientsNbBoucliers;
     private HashMap<SocketIOClient, Integer> clientsNbPointsBatiments;
     private HashMap<SocketIOClient, Integer> resultatsPhaseCombat;
+    private HashMap<SocketIOClient, Integer> clientsNbPieces;
     private Deck deck;
     private GestionnairePlateau gestionnairePlateau;
     private String adresse;
@@ -57,15 +57,15 @@ public class Serveur {
         clientsNbBoucliers = new HashMap<>();
         clientsNbPointsBatiments = new HashMap<>();
         resultatsPhaseCombat = new HashMap<>();
+        clientsNbPieces = new HashMap<>();
+
+        deck = new Deck(this.nbJoueurs);
+        gestionnairePlateau = new GestionnairePlateau();
 
         server = new SocketIOServer(config);
         server.start();
 
-        System.out.println("[SERVEUR] - Serveur prêt en attente de connexions sur le port " + this.port);
         System.out.println("[SERVEUR] - Création d'un deck pour " + this.nbJoueurs + " joueurs");
-
-        deck = new Deck(this.nbJoueurs);
-        gestionnairePlateau = new GestionnairePlateau();
 
         ajoutEcouteurs();
     }
@@ -83,7 +83,7 @@ public class Serveur {
                 clientsNbPointsBatiments.put(socketIOClient, 0);
                 clientsNbBoucliers.put(socketIOClient, 0);
                 resultatsPhaseCombat.put(socketIOClient, 0);
-                System.out.println("[SERVEUR] - Nombre de clients : " + clientsMains.size());
+                clientsNbPieces.put(socketIOClient, 3);
 
                 if (clientsMains.size() == nbJoueurs) {
                     System.out.println("[SERVEUR] - Tous les joueurs sont présents, la partie peut commencer");
@@ -102,11 +102,11 @@ public class Serveur {
             }
         });
 
-        server.addEventListener("confirmationReceptionPlateau", ArrayList.class, new DataListener<ArrayList>() {
+        server.addEventListener("confirmationReceptionPlateau", String.class, new DataListener<String>() {
             @Override
-            public void onData(SocketIOClient socketIOClient, ArrayList arrayList, AckRequest ackRequest) throws Exception {
-                System.out.println("[SERVEUR] - " + arrayList.get(0) + " a bien reçu son plateau, son status de jeu est " + arrayList.get(1));
-                identificationsClients.replace(socketIOClient, (String) arrayList.get(0));
+            public void onData(SocketIOClient socketIOClient, String identification, AckRequest ackRequest) throws Exception {
+                System.out.println("[SERVEUR] - " + identification + " a bien reçu son plateau");
+                identificationsClients.replace(socketIOClient, identification);
                 nbPlateauRecus++;
                 verifReceptionPlateaux();
             }
@@ -133,11 +133,11 @@ public class Serveur {
                     }
 
                     if (typeAction == 1) {
-                        System.out.println("[SERVEUR] - Réception de la demande de défausse de la carte " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " par " + identificationsClients.get(socketIOClient));
+                        clientsNbPieces.replace(socketIOClient, clientsNbPieces.get(socketIOClient) + 3);
+                        socketIOClient.sendEvent("confirmationCarteDefaussee", clientsNbPieces.get(socketIOClient));
+                        System.out.println("[SERVEUR] - " + identificationsClients.get(socketIOClient) + " vient de défausser " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " et vient ainsi de gagner 3 pièces, ce qui lui donne maintenant un total de " + clientsNbPieces.get(socketIOClient) + " pièces!");
                     } else {
-                        System.out.println("[SERVEUR] - Réception de la demande de jeu de la carte " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " par " + identificationsClients.get(socketIOClient));
                         clientsPlateaux.get(socketIOClient).ajouterCarteJouee(clientsMains.get(socketIOClient).getCartes().get(indiceCarte));
-
                         switch (clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getType()) {
                             case 1:
                                 clientsNbPointsBatiments.replace(socketIOClient, clientsNbPointsBatiments.get(socketIOClient) + clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getPoint());
@@ -146,7 +146,11 @@ public class Serveur {
                             case 2:
                                 clientsNbBoucliers.replace(socketIOClient, clientsNbBoucliers.get(socketIOClient) + clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getPoint());
                                 System.out.println("[SERVEUR] - " + identificationsClients.get(socketIOClient) + " vient de jouer " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + " et vient ainsi de gagner " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte).getPoint() + " boucliers, ce qui lui donne maintenant un total de " + clientsNbBoucliers.get(socketIOClient) + " boucliers!");
+                                break;
+                            default:
+                                System.out.println("[SERVEUR] - " + identificationsClients.get(socketIOClient) + " vient de jouer " + clientsMains.get(socketIOClient).getCartes().get(indiceCarte) + "!");
                         }
+
                     }
 
                     clientsMains.get(socketIOClient).getCartes().remove(indiceCarte);
@@ -160,7 +164,7 @@ public class Serveur {
         });
     }
 
-    private void verifToutLeMondeAJoue() {
+    private void verifToutLeMondeAJoue() throws Exception {
         int nbAJoue = 0;
         // Calcul du nombre de joueurs qui ont déjà joués
         for (SocketIOClient c : statusDeJeu.keySet()) {
@@ -177,7 +181,7 @@ public class Serveur {
 
             numeroTour++;
             nbMainsDepartRecues = 0;
-            System.out.println("[SERVEUR] - Tous les joueurs ont joués, début du tour " + numeroTour);
+            System.out.println("========================== FIN DU TOUR " + (numeroTour - 1) + " DE L'AGE " + numeroAge + " ==========================");
             envoyerNouvellesMains();
         } else if (nbAJoue == nbJoueurs) {
             phaseCombat();
@@ -186,7 +190,7 @@ public class Serveur {
         }
     }
 
-    private void verifReceptionPlateaux() {
+    private void verifReceptionPlateaux() throws Exception {
         if (nbPlateauRecus == nbJoueurs) {
             System.out.println("[SERVEUR] - Tous les joueurs ont reçus leur plateau, on peut envoyer les mains");
             envoyerMainsDeDepart();
@@ -210,23 +214,28 @@ public class Serveur {
 
     /**
      * Envoi de la main de départ à chaque joueur
-     * Diffère de la méthode envoyerNouvellesMains
+     * Diffère de la méthode envoyerNouvellesMains par le fait qu'elle génére une nouvelle main
      */
     private void envoyerMainsDeDepart() {
         for (SocketIOClient c : clientsMains.keySet()) {
             Main main = new Main(deck.genererMain());
             clientsMains.replace(c, main);
             ArrayList<String> typesCartes = generateTypesCartes(main);
-            System.out.println("[SERVEUR] - Envoi de la main de départ\n" + main + "\nà " + identificationsClients.get(c));
+            // System.out.println("[SERVEUR] - Envoi de la main de départ\n" + main + "\nà " + identificationsClients.get(c));
             c.sendEvent("envoyerMain", typesCartes);
         }
     }
 
+    /**
+     * Envoi de la main aux joueur
+     * Diffère de la méthode envoyerMainsDeDepart par le fait qu'elle ne génère pas de nouvelle main, elle utilise celles
+     * qui se trouvent dans la HashMap clientsMain
+     */
     private void envoyerNouvellesMains() {
         for (SocketIOClient c : clientsMains.keySet()) {
             Main main = clientsMains.get(c);
             ArrayList<String> typesCartes = generateTypesCartes(main);
-            System.out.println("[SERVEUR] - Envoi de la nouvelle main\n" + main + "\nà " + identificationsClients.get(c));
+            // System.out.println("[SERVEUR] - Envoi de la nouvelle main\n" + main + "\nà " + identificationsClients.get(c));
             c.sendEvent("envoyerMain", typesCartes);
         }
     }
@@ -254,12 +263,11 @@ public class Serveur {
                 break; // +5 points en age 3
         }
 
-        System.out.println("[SERVEUR] - Calcul nombre de points gagnés pour " + identificationsClients.get(current));
         resultatsPhaseCombat.replace(current, nbPointsGagnes);
         current.sendEvent("ajouterPointsVictoire", nbPointsGagnes);
     }
 
-    private void phaseCombat() {
+    private void phaseCombat() throws Exception {
         System.out.println("[SERVEUR] - Début de la phase de combat");
         int hashSize = clientsNbBoucliers.size();
         int lastElementIndex = hashSize - 1;
@@ -286,6 +294,28 @@ public class Serveur {
         System.out.println("========================== RESULTATS DE LA PHASE DE COMBAT DE L'AGE " + numeroAge + " ==========================");
         for (SocketIOClient c : clientsMains.keySet()) {
             System.out.println(identificationsClients.get(c) + " a obtenu " + resultatsPhaseCombat.get(c) + " point(s) de victoire suite à la phase de combat!");
+        }
+
+        bilanTour();
+    }
+
+    private void bilanTour() throws Exception {
+        System.out.println("========================== BILAN AGE " + numeroAge + " ==========================");
+        for (SocketIOClient c : clientsMains.keySet()) {
+            int pointsVictoire = 0;
+            pointsVictoire += clientsNbPointsBatiments.get(c);
+            pointsVictoire += clientsNbBoucliers.get(c);
+            System.out.println(identificationsClients.get(c) + " a un total " + pointsVictoire + " points de victoire dont\n" + resultatsPhaseCombat.get(c) + " points obtenus pendant la phase de combat\n" + clientsNbPointsBatiments.get(c) + " points obtenus grâce aux bâtiments");
+        }
+
+        if (numeroAge == 3) {
+            System.out.println("========================== L'AGE 3 A ETE ATTEINT, FIN DU JEU ==========================");
+        } else {
+            nbMainsDepartRecues = 0;
+            numeroTour = 1;
+            numeroAge++;
+            deck = new Deck(nbJoueurs);
+            envoyerMainsDeDepart();
         }
     }
 

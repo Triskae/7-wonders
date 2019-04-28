@@ -303,8 +303,10 @@ public class Serveur {
         System.out.println("========================== BILAN AGE " + numeroAge + " ==========================");
         for (SocketIOClient c : clientsMains.keySet()) {
             int pointsVictoire = 0;
+//            System.out.println("Pts bâtiments " + clientsNbPointsBatiments.get(c));
+//            System.out.println("Boucliers " + clientsNbBoucliers.get(c));
             pointsVictoire += clientsNbPointsBatiments.get(c);
-            pointsVictoire += clientsNbBoucliers.get(c);
+            pointsVictoire += resultatsPhaseCombat.get(c);
             System.out.println(identificationsClients.get(c) + " a un total " + pointsVictoire + " points de victoire dont\n" + resultatsPhaseCombat.get(c) + " points obtenus pendant la phase de combat\n" + clientsNbPointsBatiments.get(c) + " points obtenus grâce aux bâtiments");
         }
 

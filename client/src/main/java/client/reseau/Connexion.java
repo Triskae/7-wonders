@@ -17,8 +17,8 @@ public class Connexion {
 
     private static final String ANSI_RESET = "\u001B[0m";
     private static final String ANSI_YELLOW = "\u001B[33m";
-    private static final String ANSI_PURPLE = "\u001B[35m";
     private static final String ANSI_GREEN = "\u001B[32m";
+    private static final String ANSI_PURPLE = "\u001B[35m";
 
     private final Client client;
     private Socket connexion;
@@ -48,29 +48,6 @@ public class Connexion {
                 }
             });
 
-            connexion.on("envoiMain", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    ArrayList<Carte> mainRecue = new ArrayList<>();
-                    Object carteTemp;
-                    JSONArray typesCartes = (JSONArray) objects[0];
-                    for (int i = 0; i < typesCartes.length(); i++) {
-                        try {
-                            carteTemp = Class.forName(typesCartes.getString(i)).newInstance();
-                            mainRecue.add((Carte) carteTemp);
-                        } catch (InstantiationException | IllegalAccessException | JSONException | ClassNotFoundException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    client.setMain(new Main(mainRecue));
-                    if (client.isIA()) {
-                        client.getInstanceIA().setChoixRestants(mainRecue);
-                        client.getInstanceIA().reinitialiserListeCartesInjouables();
-                    }
-                    client.readyToPlay();
-                }
-            });
-
             connexion.on("envoiPlateau", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
@@ -81,53 +58,45 @@ public class Connexion {
                     } catch (InstantiationException | IllegalAccessException | ClassNotFoundException e) {
                         e.printStackTrace();
                     }
-                    if (client.isIA()) System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
-                    else System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Plateau reçu (" + client.getPlateaux() + ")" + ANSI_RESET);
                     try {
                         client.addRessourceDepart(client.getPlateaux());
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                    connexion.emit("confirmationReceptionPlateau", client.getNom());
                 }
             });
 
-            connexion.on("demanderPointsMilitaire", new Emitter.Listener() {
+            connexion.on("envoyerMain", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    connexion.emit("envoyerPointsMilitaire", client.getNbBoucliers());
-                }
-            });
+                    ArrayList<Carte> mainRecue = new ArrayList<>();
+                    JSONArray typesCartes = (JSONArray) objects[0];
 
-            connexion.on("confirmationCarteDefaussee", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    client.setNombrePiece(client.getNombrePiece() + 3);
-                    if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
-                }
-            });
-
-            connexion.on("turn", new Emitter.Listener() {
-                @Override
-                public void call(Object... objects) {
-                    try {
-                        JSONArray numeros = (JSONArray) objects[0];
-                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
-                        client.tour(true);
-                    } catch (Exception e) {
-                        e.printStackTrace();
+                    for (int i = 0; i < typesCartes.length(); i++) {
+                        try {
+                            mainRecue.add((Carte) Class.forName(typesCartes.getString(i)).newInstance());
+                        } catch (InstantiationException | IllegalAccessException | JSONException | ClassNotFoundException e) {
+                            e.printStackTrace();
+                        }
                     }
+
+                    Main main = new Main(mainRecue);
+                    client.setMain(main);
+                    if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Réception d'une nouvelle main" + ANSI_RESET);
+                    else System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Réception d'une nouvelle main" + ANSI_RESET);
+                    connexion.emit("confirmationReceptionMain");
                 }
             });
 
-            connexion.on("finTour", new Emitter.Listener() {
+            connexion.on("nouveauTour", new Emitter.Listener() {
                 @Override
                 public void call(Object... objects) {
-                    client.setAJoue(false);
+                    if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Un nouveau tour commence, voici ma main" + ANSI_RESET);
+                    else System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Un nouveau tour commence, voici ma main" + ANSI_RESET + "\n" + client.getMain());
                     try {
-                        JSONArray numeros = (JSONArray) objects[0];
-                        if (!client.isIA()) System.out.println(ANSI_GREEN + "=============== DEBUT DU TOUR " + numeros.getString(1) + " DE L'AGE " + numeros.getString(0) + " ===============" + ANSI_RESET);
                         client.tour(true);
-                    } catch (Exception e) {
+                    } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 }
@@ -136,22 +105,27 @@ public class Connexion {
             e.printStackTrace();
         }
 
-            connexion.on("ajouterPointsVictoire", new Emitter.Listener() {
-                @Override
-                public void call(Object... args) {
-                    client.ajouterPointsVictoire((int) args[0]);
-                    System.out.println("Passage dans points victoire" + " " + (int) args[0]);
-                }
-            });
+        connexion.on("confirmationCarteDefaussee", new Emitter.Listener() {
+            @Override
+            public void call(Object... objects) {
+                client.setNombrePiece((Integer) objects[0]);
+                if (!client.isIA()) System.out.println(ANSI_YELLOW + "[CLIENT " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
+                System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Vous avez défaussé une carte et avez obtenu 3 pièces (nombre total de pièces : " + client.getNombrePiece() + ")" + ANSI_RESET);
+            }
+        });
+    }
+
+    public void jouer(JSONArray payload) throws JSONException {
+        if ((int) payload.get(1) == 1) {
+            if (client.isIA()) System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Je veux défausser la carte " + client.getMain().getCartes().get(payload.getInt(0)) + ANSI_RESET);
+        } else {
+            if (client.isIA()) System.out.println(ANSI_PURPLE + "[IA " + client.getNom() + "] - Je veux jouer la carte " + client.getMain().getCartes().get(payload.getInt(0)) + ANSI_RESET);
+        }
+        connexion.emit("actionDeJeu", payload);
     }
 
     public void seConnecter() {
-        // on se connecte
         connexion.connect();
-    }
-
-    public Socket getSocket() {
-        return connexion;
     }
 
     public void emit(String str, Object... payload) {

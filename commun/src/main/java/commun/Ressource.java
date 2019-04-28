@@ -27,14 +27,22 @@ public class Ressource {
         ressource.put("Gold",0);
     }
 
-    public void ajouterRessource(String nom, int nb) throws Exception {
+    public void ajouterRessource(String nom, int nb) {
         if(nb <= 0){
-            throw new Exception("Valeur negative interdite");
+            try {
+                throw new Exception("Valeur negative interdite");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
         if (ressource.containsKey(nom)) {
             ressource.put(nom,ressource.get(nom)+ nb);
         }else{
-            throw new Exception("Ressource inconnue");
+            try {
+                throw new Exception("Ressource inconnue");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
     }

@@ -2,6 +2,7 @@ package client.IA;
 
 import client.Client;
 import commun.cartes.Carte;
+import org.json.JSONException;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -10,8 +11,6 @@ public class IA {
 
     private Client c;
     private String strat;
-    private ArrayList<Carte> listeCartesInjouables = new ArrayList<>();
-    private ArrayList<Carte> choixRestants = new ArrayList<>();
 
     public IA(Client c, String strategie) {
         strat = strategie;
@@ -19,80 +18,59 @@ public class IA {
         c.setIA(true);
     }
 
-    public ArrayList<Carte> getListeCartesInjouables() {
-        return listeCartesInjouables;
-    }
-
-    public void reinitialiserListeCartesInjouables() {
-        this.listeCartesInjouables.clear();
-    }
-
-    public void setChoixRestants(ArrayList<Carte> choixRestants) {
-        this.choixRestants = choixRestants;
-    }
-
-    public ArrayList<Carte> getChoixRestants() {
-        return choixRestants;
-    }
-
-    public void ajouterCarteInjouable(Carte carte) {
-        this.listeCartesInjouables.add(carte);
-    }
-
-    public void supprimerChoix(Carte carte) {
-        this.choixRestants.remove(carte);
-    }
-
     // Stratégie nulle joue juste une carte au hasard
-    private void jouerCarteAlea() throws Exception {
-        if (!c.getAJoue()) {
-            if (!c.getMain().getCartes().isEmpty()) {
-                Carte carteJouee = randomCarte(c.getMain().getCartes());
-                c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
-                c.setAJoue(true);
-            }
+    private void jouerCarteAlea() throws JSONException {
+        if (!c.getMain().getCartes().isEmpty()) {
+            Carte carteJouee = randomCarte(c.getMain().getCartes());
+            c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
         }
     }
 
-    private void jouerCarteParCouleur(int type) throws Exception {
-        if (!c.getAJoue()) {
-            int bestScore=-1;
-            int score;
-            int indice=-1;
+    /**
+     * Essaye de jouer la carte avec le nombre de points le plus elevé du type donné en paramètre
+     * Par exemple si 2 cartes science sont dans le deck une avec 2 points et l'autre avec 3, joue la 3, sinon carte random
+     * Sinon joue une carte aléatoire
+     * @param type Le type de la carte (carte bleu = 1, carte rouge = 2)
+     */
+    private void jouerCarteParCouleur(int type) throws JSONException {
+        int bestScore = -1;
+        int indice = 0;
 
-            for(int i=0;i<c.getMain().getCartes().size();i++) { //parcours la main
-                if(c.getMain().getCartes().get(i).getType()==type){ // Verifie si c'est une carte de type passer en paramètre
-                    score=c.getMain().getCartes().get(i).getPoint();
-                    if(bestScore<score){ //verifie qu'il y ai aucune carte avec plus de points dans la main
-                        bestScore=score;
-                        indice=i;
-                    }
+        for (int i = 0; i < c.getMain().getCartes().size(); i++) {
+            if (c.getMain().getCartes().get(i).getType() == type) {
+                if (c.getMain().getCartes().get(i).getPoint() >= bestScore) {
+                    bestScore = c.getMain().getCartes().get(i).getPoint();
+                    indice = i;
                 }
             }
+        }
 
-            if(bestScore!=-1) { //s'il y a eu une carte du type en parametre et avec le plus de points
-                Carte carteJouee = c.getMain().getCartes().get(indice);
-                c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
-                c.setAJoue(true);
-            } else { //joue une carte aléatoire sinon
-                jouerCarteAlea();
-            }
+        // Si il y a une carte du type en paramètre
+        if (bestScore != -1) {
+            Carte carteJouee = c.getMain().getCartes().get(indice);
+            c.playCard(carteJouee, c.getMain().getCartes().indexOf(carteJouee));
+        } else { //joue une carte aléatoire sinon
+            jouerCarteAlea();
         }
     }
 
-    public void tour() throws Exception {
+    public void tour() throws JSONException {
         switch (strat) {
             case "random":
                 jouerCarteAlea();
-            case "bleu" :
+                break;
+            case "bleu":
                 jouerCarteParCouleur(1);
-            case "rouge" :
+                break;
+            case "rouge":
                 jouerCarteParCouleur(2);
+                break;
         }
     }
 
     private static Carte randomCarte(ArrayList<Carte> cartes) {
-        Random rand = new Random();
-        return cartes.get(rand.nextInt(cartes.size()));
+        Random randomGenerator = new Random();
+        int index = randomGenerator.nextInt(cartes.size());
+        return cartes.get(index);
     }
 }
